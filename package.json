@@ -2,7 +2,7 @@
   "name": "zoobrilka-alice-skill",
   "version": "0.0.1",
   "description": "A simple alice skill",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
     "start": "node ./dist/index.js",
     "serve": "tsc && npm run start",
@@ -12,8 +12,10 @@
     "push": "git push heroku master"
   },
   "dependencies": {
-    "js-levenshtein": "^1.1.6",
+    "dotenv": "^16.0.1",
+    "firebase-admin": "^11.0.0",
     "lodash": "^4.17.21",
+    "string-comparison": "^1.1.0",
     "yandex-dialogs-sdk": "^2.3.0"
   },
   "engines": {
