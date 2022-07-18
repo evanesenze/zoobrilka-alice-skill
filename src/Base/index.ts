@@ -28,8 +28,16 @@ const savePoem = async (poem: IPoem) => {
   poemsRef.child(String(poem.id)).update(poem);
 };
 
+const comparePoem = (a: IPoem, b: IPoem, title: string, author: string): number => {
+  const poem1 = levenshtein.similarity(a.title, title) + levenshtein.similarity(a.author, author);
+  const poem2 = levenshtein.similarity(b.title, title) + levenshtein.similarity(b.author, author);
+  return poem2 - poem1;
+};
+
 const searchPoems = async (author?: string, title?: string, tagName?: string) => {
   console.time('searchPoems');
+  console.log(author);
+  console.log(title);
   const arr: Promise<any>[] = [];
   if (author)
     arr.push(
@@ -49,14 +57,14 @@ const searchPoems = async (author?: string, title?: string, tagName?: string) =>
         .limitToFirst(5)
         .once('value')
     );
-  let res = (await Promise.all(arr).then((values) => values.map((value) => Object.values(value.val() ?? {}) as IPoem[]))).reduce(
-    (acc, value) => [...acc, ...value.filter((value) => acc.filter((x) => x.author === value.author && x.title === value.title).length === 0)],
-    []
-  );
-  if (title) res = res.sort((a, b) => levenshtein.similarity(b.title, title) - levenshtein.similarity(a.title, title));
-  if (author) res = res.sort((a, b) => levenshtein.similarity(b.author, author) - levenshtein.similarity(a.author, author));
+  let res = (await Promise.all(arr).then((values) => values.map((value) => Object.values(value.val() ?? {}) as IPoem[])))
+    .reduce((acc, value) => [...acc, ...value.filter((value) => acc.filter((x) => x.author === value.author && x.title === value.title).length === 0)], [])
+    .slice(0, 5);
+  // if (title) res = res.sort((a, b) => levenshtein.similarity(b.title, title) - levenshtein.similarity(a.title, title));
+  // if (author) res = res.sort((a, b) => levenshtein.similarity(b.author, author) - levenshtein.similarity(a.author, author));
+  res = res.sort((a, b) => comparePoem(a, b, title ?? '', author ?? ''));
   console.timeEnd('searchPoems');
-  console.log(res.slice(0, 5).map((x) => `${x.author} - ${x.title}`));
+  console.log(res.map((x) => `${x.author} - ${x.title}`));
   return res;
 };
 

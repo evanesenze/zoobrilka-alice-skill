@@ -2,7 +2,7 @@ type PoemTextType = 'full' | 'block' | 'row';
 
 type SceneType = 'LEARN_SCENE' | 'FIND_MENU_SCENE' | 'SELECT_LIST_SCENE';
 
-type FindProperty = 'title' | 'first_line' | 'author';
+// type FindProperty = 'title' | 'first_line' | 'author';
 
 interface IPoem {
   author: string;
@@ -17,6 +17,8 @@ interface ILearnData {
   poem: IPoem;
   textType: PoemTextType;
   blocksData: string[][];
+  errorCount: number;
+  canLearnNext: boolean;
   blocksCount: number;
   currentBlock: IBlockInfo;
   currentRow: IRowInfo;
@@ -41,8 +43,9 @@ interface IAuthorInfo {
 }
 
 interface ISelectListData {
-  key: FindProperty;
-  query: string;
-  offset: number;
+  // key: FindProperty;
+  // query: string;
+  // offset: number;
+  selectedPoem?: IPoem;
   items: IPoem[];
 }

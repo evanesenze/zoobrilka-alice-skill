@@ -39,8 +39,15 @@ const savePoem = (poem) => __awaiter(void 0, void 0, void 0, function* () {
     poemsRef.child(String(poem.id)).update(poem);
 });
 exports.savePoem = savePoem;
+const comparePoem = (a, b, title, author) => {
+    const poem1 = string_comparison_1.levenshtein.similarity(a.title, title) + string_comparison_1.levenshtein.similarity(a.author, author);
+    const poem2 = string_comparison_1.levenshtein.similarity(b.title, title) + string_comparison_1.levenshtein.similarity(b.author, author);
+    return poem2 - poem1;
+};
 const searchPoems = (author, title, tagName) => __awaiter(void 0, void 0, void 0, function* () {
     console.time('searchPoems');
+    console.log(author);
+    console.log(title);
     const arr = [];
     if (author)
         arr.push(poemsRef
@@ -56,13 +63,14 @@ const searchPoems = (author, title, tagName) => __awaiter(void 0, void 0, void 0
             .endAt(title + '\uf8ff')
             .limitToFirst(5)
             .once('value'));
-    let res = (yield Promise.all(arr).then((values) => values.map((value) => { var _a; return Object.values((_a = value.val()) !== null && _a !== void 0 ? _a : {}); }))).reduce((acc, value) => [...acc, ...value.filter((value) => acc.filter((x) => x.author === value.author && x.title === value.title).length === 0)], []);
-    if (title)
-        res = res.sort((a, b) => string_comparison_1.levenshtein.similarity(b.title, title) - string_comparison_1.levenshtein.similarity(a.title, title));
-    if (author)
-        res = res.sort((a, b) => string_comparison_1.levenshtein.similarity(b.author, author) - string_comparison_1.levenshtein.similarity(a.author, author));
+    let res = (yield Promise.all(arr).then((values) => values.map((value) => { var _a; return Object.values((_a = value.val()) !== null && _a !== void 0 ? _a : {}); })))
+        .reduce((acc, value) => [...acc, ...value.filter((value) => acc.filter((x) => x.author === value.author && x.title === value.title).length === 0)], [])
+        .slice(0, 5);
+    // if (title) res = res.sort((a, b) => levenshtein.similarity(b.title, title) - levenshtein.similarity(a.title, title));
+    // if (author) res = res.sort((a, b) => levenshtein.similarity(b.author, author) - levenshtein.similarity(a.author, author));
+    res = res.sort((a, b) => comparePoem(a, b, title !== null && title !== void 0 ? title : '', author !== null && author !== void 0 ? author : ''));
     console.timeEnd('searchPoems');
-    console.log(res.slice(0, 5).map((x) => `${x.author} - ${x.title}`));
+    console.log(res.map((x) => `${x.author} - ${x.title}`));
     return res;
 });
 exports.searchPoems = searchPoems;
