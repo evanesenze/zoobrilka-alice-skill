@@ -15,6 +15,7 @@ interface IPoem {
 
 interface ILearnData {
   poem: IPoem;
+  poemСomplited: boolean;
   textType: PoemTextType;
   blocksData: string[][];
   errorCount: number;

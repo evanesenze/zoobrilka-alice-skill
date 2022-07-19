@@ -9,7 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("./Api");
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
+const string_comparison_1 = require("string-comparison");
 const lodash_1 = require("lodash");
 const Base_1 = require("./Base");
 const port = Number(process.env.PORT) || 3000;
@@ -54,7 +56,7 @@ const sceneMessages = {
 };
 const sceneHints = {
     LEARN_SCENE: ['Учите, ничем не могу помочь'],
-    FIND_MENU_SCENE: ['Скажите "Искать по названию", чтобы я нашла стих по названию.\n Скажите "Искать по автору", чтобы я нашла стих по автору.'],
+    FIND_MENU_SCENE: ['Назовите автора или название стиха, чтобы начать поиск'],
     SELECT_LIST_SCENE: ['Для выбора стиха, назовите его номер\nДля перехода к поиску, скажите "Поиск"'],
 };
 const getCurrentScene = (session) => {
@@ -70,8 +72,9 @@ const removeSceneHistory = (session) => {
 const addSceneHistory = (session, newSceneName) => {
     const arr = (session.get('sceneHistory') || []);
     arr.push(newSceneName);
-    session.set('sceneHistory', arr);
+    session.set('sceneHistory', [...new Set(arr)]);
 };
+const deleteLearnData = (session) => session.delete('learnData');
 const getOldLearnData = (session) => session.get('learnData');
 const getBlocksData = (text) => text.split('\n\n').map((item) => item.split('\n'));
 const getNewLearnData = (poem, textType, currentBlockIndex = 0, currentRowIndex = 0) => {
@@ -81,9 +84,11 @@ const getNewLearnData = (poem, textType, currentBlockIndex = 0, currentRowIndex 
     const rows = blocksData[currentBlockIndex];
     const blocksCount = blocksData.length - 1;
     const rowsCount = Math.ceil(rows.length / ROWS_COUNT);
+    const learnedRows = [0];
     return {
         poem,
         blocksData,
+        poemСomplited: false,
         textType,
         errorCount: 0,
         canLearnNext: false,
@@ -91,9 +96,9 @@ const getNewLearnData = (poem, textType, currentBlockIndex = 0, currentRowIndex 
         currentBlock: {
             index: currentBlockIndex,
             rowsCount,
-            complited: false,
-            isLast: blocksData.length === currentBlockIndex,
-            learnedRows: [0],
+            complited: learnedRows.length === rowsCount,
+            isLast: currentBlockIndex === blocksCount,
+            learnedRows,
         },
         currentRow: {
             index: currentRowIndex,
@@ -122,18 +127,75 @@ const getPoemText = (learnData) => {
             return currentRowText.substring(0, 900);
     }
 };
-const compareText = (text1, text2) => {
-    // return Math.random() > 0.1;
-    return true;
-};
 const deleteSelectData = (session) => session.delete('selectListData');
 const getSelectListData = (session) => session.get('selectListData');
 const saveSelectListData = (session, newData) => session.set('selectListData', newData); // !
+const goLearnNext = (ctx, learnData) => {
+    const { currentBlock, currentRow, poem, poemСomplited } = learnData;
+    if (currentRow.isLast && currentBlock.learnedRows.includes(currentRow.index)) {
+        if (currentBlock.isLast) {
+            console.log('currentBlock is last');
+            if (!poemСomplited) {
+                const text = 'Повторите стих целиком:\n' + getPoemText(Object.assign(Object.assign({}, learnData), { textType: 'full' }));
+                saveLearnData(ctx.session, Object.assign(Object.assign({}, learnData), { poemСomplited: true }));
+                return yandex_dialogs_sdk_1.Reply.text(text);
+            }
+            else {
+                ctx.leave();
+                deleteLearnData(ctx.session);
+                return yandex_dialogs_sdk_1.Reply.text('Поздравляю! Вы выучили новый стих');
+            }
+        }
+        console.log('currentRow is last');
+        currentBlock.complited = true;
+        if (currentBlock.rowsCount > 1 && currentBlock.index != 0 && !currentBlock.complited && currentBlock.rowsCount > 2) {
+            console.log('currentBlock is not complited');
+            const nextLearnData = Object.assign(Object.assign({}, learnData), { currentBlock, textType: 'full' });
+            saveLearnData(ctx.session, nextLearnData);
+            const text = 'Молодец! Блок закончен, теперь повтори его полностью:\n\n' + getPoemText(nextLearnData);
+            return yandex_dialogs_sdk_1.Reply.text(text);
+        }
+        else {
+            const tts = `Скажите "Дальше", чтобы продолжить.
+Скажить "Повторить стих", чтобы повторить весь стих.
+Скажите "Повторить блок", чтобы повторить последний блок.`;
+            return yandex_dialogs_sdk_1.Reply.text({ text: 'Двигаемся дальше, потворяем блок или весь стих?', tts });
+        }
+    }
+    else {
+        console.log('next row');
+        if (currentBlock.learnedRows.includes(currentRow.index)) {
+            console.log('new row');
+            const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index, currentRow.index + 1);
+            if (!nextLearnData) {
+                ctx.leave();
+                return yandex_dialogs_sdk_1.Reply.text('Переход в меню');
+            }
+            saveLearnData(ctx.session, nextLearnData);
+            const text = 'Повторите строку:\n\n' + getPoemText(nextLearnData);
+            return yandex_dialogs_sdk_1.Reply.text(text);
+        }
+        else {
+            currentBlock.learnedRows.push(currentRow.index);
+            console.log('repeat block');
+            const nextLearnData = Object.assign(Object.assign({}, learnData), { currentBlock, textType: 'block' });
+            saveLearnData(ctx.session, nextLearnData);
+            const text = 'Повторите уже выученые строки:\n\n' + getPoemText(nextLearnData);
+            return yandex_dialogs_sdk_1.Reply.text(text);
+        }
+    }
+};
 const atLearn = new yandex_dialogs_sdk_1.Scene(LEARN_SCENE);
 atLearn.command(/дальше/, (ctx) => {
     const learnData = getOldLearnData(ctx.session);
     console.log('currentBlock is complited');
+    console.log(learnData);
     const { currentBlock, poem } = learnData;
+    if (!currentBlock.complited) {
+        const poemText = getPoemText(learnData);
+        const text = 'Продолжайте учить:\n\n' + poemText;
+        return yandex_dialogs_sdk_1.Reply.text({ text, tts: 'Сначала выучите текущий блок!\n' + text });
+    }
     const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index + 1, 0);
     if (!nextLearnData) {
         ctx.leave();
@@ -155,55 +217,26 @@ atLearn.command('повторить блок', (ctx) => {
     const text = 'Повторите блок:\n\n' + getPoemText(Object.assign(Object.assign({}, learnData), { textType: 'block' }));
     return yandex_dialogs_sdk_1.Reply.text(text);
 });
+atLearn.command(/продолжить/, (ctx) => {
+    const learnData = getOldLearnData(ctx.session);
+    const poemText = getPoemText(learnData);
+    if (!learnData.errorCount)
+        return yandex_dialogs_sdk_1.Reply.text('Вы не допустили ни одной ошибки. Продолжайте учить:\n\n' + poemText);
+    return goLearnNext(ctx, Object.assign(Object.assign({}, learnData), { errorCount: 0 }));
+});
 atLearn.any((ctx) => {
     const learnData = getOldLearnData(ctx.session);
     const poemText = getPoemText(learnData);
-    if (compareText(poemText, ctx.message)) {
-        const { currentBlock, currentRow, poem } = learnData;
-        if (currentRow.isLast && currentBlock.learnedRows.includes(currentRow.index)) {
-            if (currentBlock.isLast) {
-                console.log('currentBlock is last');
-                return yandex_dialogs_sdk_1.Reply.text(getPoemText(Object.assign(Object.assign({}, learnData), { textType: 'full' })));
-            }
-            console.log('currentRow is last');
-            if (currentBlock.rowsCount > 1 && currentBlock.index != 0 && !currentBlock.complited && currentBlock.rowsCount > 2) {
-                console.log('currentBlock is not complited');
-                currentBlock.complited = true;
-                const nextLearnData = Object.assign(Object.assign({}, learnData), { currentBlock, textType: 'full' });
-                saveLearnData(ctx.session, nextLearnData);
-                const text = 'Молодец! Блок закончен, теперь повтори его полностью:\n\n' + getPoemText(nextLearnData);
-                return yandex_dialogs_sdk_1.Reply.text(text);
-            }
-            else {
-                return yandex_dialogs_sdk_1.Reply.text('Двигаемся дальше, потворяем блок или весь стих?');
-            }
-        }
-        else {
-            console.log('next row');
-            if (currentBlock.learnedRows.includes(currentRow.index)) {
-                console.log('new row');
-                const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index, currentRow.index + 1);
-                if (!nextLearnData) {
-                    ctx.leave();
-                    return yandex_dialogs_sdk_1.Reply.text('Переход в меню');
-                }
-                saveLearnData(ctx.session, nextLearnData);
-                const text = 'Повторите строку:\n\n' + getPoemText(nextLearnData);
-                return yandex_dialogs_sdk_1.Reply.text(text);
-            }
-            else {
-                currentBlock.learnedRows.push(currentRow.index);
-                console.log('repeat block');
-                const nextLearnData = Object.assign(Object.assign({}, learnData), { currentBlock, textType: 'block' });
-                saveLearnData(ctx.session, nextLearnData);
-                const text = 'Повторите уже выученые строки:\n\n' + getPoemText(nextLearnData);
-                return yandex_dialogs_sdk_1.Reply.text(text);
-            }
-        }
+    const matchDigit = string_comparison_1.levenshtein.similarity(poemText.toLowerCase(), ctx.message.toLowerCase());
+    console.log(matchDigit);
+    return goLearnNext(ctx, learnData);
+    if (matchDigit > 0.5) {
+        return goLearnNext(ctx, learnData);
     }
     else {
         saveLearnData(ctx.session, Object.assign(Object.assign({}, learnData), { errorCount: learnData.errorCount + 1 }));
-        return yandex_dialogs_sdk_1.Reply.text(`Вы допустили ошибку. Повторите еще раз\n\n${poemText}`);
+        const matchText = `Твой текст совпал на ${(matchDigit * 100).toFixed(1)}%.`;
+        return yandex_dialogs_sdk_1.Reply.text({ text: `${matchText} Повторите еще раз\n\n${poemText}`, tts: `${matchText} Скажи "Продолжить", чтобы учить дальше или повтори текст: \n\n${poemText}` });
     }
 });
 atLearn.command(...exitHandler);
@@ -246,7 +279,7 @@ atFindMenu.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
             }
         }
     }
-    const text = `Параметры поиска: 
+    const text = `Параметры поиска:
 Автор: ${author}
 Название: ${title}`;
     const items = yield (0, Base_1.searchPoems)(author, title);
@@ -426,11 +459,23 @@ alice.command(/новый|новое|другое|найти|поиск|иска
     return yandex_dialogs_sdk_1.Reply.text(message);
 });
 alice.command(/учить|продолжи/i, (ctx) => {
-    //   const c = ctx as IStageContext;
-    //   addSceneHistory(c.session, LEARN_SCENE);
-    //   c.enter(LEARN_SCENE);
-    //   const message = String(sample(sceneMessages['LEARN_SCENE']));
-    return yandex_dialogs_sdk_1.Reply.text('Я это еще не юмею');
+    const c = ctx;
+    const learnData = getOldLearnData(c.session);
+    if (!learnData) {
+        addSceneHistory(c.session, FIND_MENU_SCENE);
+        c.enter(FIND_MENU_SCENE);
+        return yandex_dialogs_sdk_1.Reply.text('У вас нет начатых стихов. Назовите автора или название, чтобы начать поиск');
+    }
+    addSceneHistory(c.session, LEARN_SCENE);
+    c.enter(LEARN_SCENE);
+    const { poem } = learnData;
+    const text = `Продолжаем учить стих ${poem.author} - ${poem.title}`;
+    const tts = `${text}
+Скажите "Дальше", чтобы начать учит новую строку.
+Скажить "Повторить стих", чтобы повторить весь стих.
+Скажите "Повторить блок", чтобы повторить последний блок.`;
+    return yandex_dialogs_sdk_1.Reply.text({ text, tts });
+    // return Reply.text('Я это еще не юмею');
 });
 alice.command(/запомни|запиши|запись|записать|запомнить/i, () => yandex_dialogs_sdk_1.Reply.text('К сожалению, я не умею записывать ваш голос. Перейдите на сайт', { buttons: [yandex_dialogs_sdk_1.Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://www.google.com' })] }));
 alice.command(/расскажи|умеешь|не/i, () => yandex_dialogs_sdk_1.Reply.text(`Что ж, пора рассказать Вам обо мне.
@@ -444,32 +489,3 @@ alice.registerScene(atFindMenu);
 alice.registerScene(atSelectList);
 alice.listen(port);
 console.log(1);
-// const findByTag = (queryOriginal: string): IPoemsData => {
-//   const query = queryOriginal.toLowerCase();
-//   return Object.entries(Base)
-//     .filter(([, value]) => value.tags.includes(query))
-//     .reduce((acc, [key, item]) => ({ ...acc, [key]: item }), {} as IPoemsData);
-// };
-// const findAuthor = (query: string): IAuthorInfo | null => {
-//   const regExp = new RegExp(query.toLowerCase(), 'gi');
-//   const authorName = BaseItems.find(({ author }) => author.match(regExp))?.author;
-//   if (!authorName) return null;
-//   const poemsCount = BaseItems.filter(({ author }) => author.match(regExp)).length;
-//   return { name: authorName, poemsCount };
-// };
-// const findPoemsByAll = (query: string, offset = 0): IPoemsData => {
-//   // const query = queryOriginal;
-//   const regExp = new RegExp(query.toLowerCase(), 'gi');
-//   const limit = 5;
-//   return BaseItems.filter(({ author, title }) => (author + title).match(regExp))
-//     .slice(offset, offset + limit)
-//     .reduce((acc, item) => ({ ...acc, [String(item.id)]: item }), {} as IPoemsData);
-// };
-// const findPoemsBy = (key: FindProperty, query: string, offset = 0): IPoemsData => {
-//   // const query = queryOriginal;
-//   const regExp = new RegExp(query.toLowerCase(), 'gi');
-//   const limit = 5;
-//   return BaseItems.filter((value) => value[key].match(regExp))
-//     .slice(offset, offset + limit)
-//     .reduce((acc, item) => ({ ...acc, [String(item.id)]: item }), {} as IPoemsData);
-// };

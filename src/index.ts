@@ -1,9 +1,10 @@
+import './Api';
 import { Alice, CommandCallback, IContext, ISession, IStageContext, Markup, Reply, Scene } from 'yandex-dialogs-sdk';
 import { IApiEntityYandexFio, IApiEntityYandexFioValue } from 'yandex-dialogs-sdk/dist/api/nlu';
 import { CommandDeclaration } from 'yandex-dialogs-sdk/dist/command/command';
+import { levenshtein } from 'string-comparison';
 import { sample } from 'lodash';
 import { searchPoems } from './Base';
-// import { searchPoems } from './Base';
 type IHandlerType = [declaration: CommandDeclaration<IStageContext>, callback: CommandCallback<IStageContext>];
 
 interface IApiEntityYandexFioNew extends IApiEntityYandexFio {
@@ -58,7 +59,7 @@ const sceneMessages: Record<SceneType, string[]> = {
 
 const sceneHints: Record<SceneType, string[]> = {
   LEARN_SCENE: ['Учите, ничем не могу помочь'],
-  FIND_MENU_SCENE: ['Скажите "Искать по названию", чтобы я нашла стих по названию.\n Скажите "Искать по автору", чтобы я нашла стих по автору.'],
+  FIND_MENU_SCENE: ['Назовите автора или название стиха, чтобы начать поиск'],
   SELECT_LIST_SCENE: ['Для выбора стиха, назовите его номер\nДля перехода к поиску, скажите "Поиск"'],
 };
 
@@ -77,8 +78,10 @@ const removeSceneHistory = (session: ISession): SceneType | undefined => {
 const addSceneHistory = (session: ISession, newSceneName: SceneType): void => {
   const arr = (session.get('sceneHistory') || []) as SceneType[];
   arr.push(newSceneName);
-  session.set('sceneHistory', arr);
+  session.set('sceneHistory', [...new Set(arr)]);
 };
+
+const deleteLearnData = (session: ISession) => session.delete('learnData');
 
 const getOldLearnData = (session: ISession) => session.get<ILearnData>('learnData');
 
@@ -90,9 +93,11 @@ const getNewLearnData = (poem: IPoem, textType: PoemTextType, currentBlockIndex 
   const rows = blocksData[currentBlockIndex];
   const blocksCount = blocksData.length - 1;
   const rowsCount = Math.ceil(rows.length / ROWS_COUNT);
+  const learnedRows = [0];
   return {
     poem,
     blocksData,
+    poemСomplited: false,
     textType,
     errorCount: 0,
     canLearnNext: false,
@@ -100,9 +105,9 @@ const getNewLearnData = (poem: IPoem, textType: PoemTextType, currentBlockIndex 
     currentBlock: {
       index: currentBlockIndex,
       rowsCount,
-      complited: false,
-      isLast: blocksData.length === currentBlockIndex,
-      learnedRows: [0],
+      complited: learnedRows.length === rowsCount,
+      isLast: currentBlockIndex === blocksCount,
+      learnedRows,
     },
     currentRow: {
       index: currentRowIndex,
@@ -132,23 +137,76 @@ const getPoemText = (learnData: ILearnData) => {
   }
 };
 
-const compareText = (text1: string, text2: string) => {
-  // return Math.random() > 0.1;
-  return true;
-};
-
 const deleteSelectData = (session: ISession) => session.delete('selectListData');
 
 const getSelectListData = (session: ISession): ISelectListData => session.get<ISelectListData>('selectListData');
 
 const saveSelectListData = (session: ISession, newData: ISelectListData) => session.set('selectListData', newData); // !
 
+const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
+  const { currentBlock, currentRow, poem, poemСomplited } = learnData;
+  if (currentRow.isLast && currentBlock.learnedRows.includes(currentRow.index)) {
+    if (currentBlock.isLast) {
+      console.log('currentBlock is last');
+      if (!poemСomplited) {
+        const text = 'Повторите стих целиком:\n' + getPoemText({ ...learnData, textType: 'full' });
+        saveLearnData(ctx.session, { ...learnData, poemСomplited: true });
+        return Reply.text(text);
+      } else {
+        ctx.leave();
+        deleteLearnData(ctx.session);
+        return Reply.text('Поздравляю! Вы выучили новый стих');
+      }
+    }
+    console.log('currentRow is last');
+    currentBlock.complited = true;
+    if (currentBlock.rowsCount > 1 && currentBlock.index != 0 && !currentBlock.complited && currentBlock.rowsCount > 2) {
+      console.log('currentBlock is not complited');
+      const nextLearnData = { ...learnData, currentBlock, textType: 'full' } as ILearnData;
+      saveLearnData(ctx.session, nextLearnData);
+      const text = 'Молодец! Блок закончен, теперь повтори его полностью:\n\n' + getPoemText(nextLearnData);
+      return Reply.text(text);
+    } else {
+      const tts = `Скажите "Дальше", чтобы продолжить.
+Скажить "Повторить стих", чтобы повторить весь стих.
+Скажите "Повторить блок", чтобы повторить последний блок.`;
+      return Reply.text({ text: 'Двигаемся дальше, потворяем блок или весь стих?', tts });
+    }
+  } else {
+    console.log('next row');
+    if (currentBlock.learnedRows.includes(currentRow.index)) {
+      console.log('new row');
+      const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index, currentRow.index + 1);
+      if (!nextLearnData) {
+        ctx.leave();
+        return Reply.text('Переход в меню');
+      }
+      saveLearnData(ctx.session, nextLearnData);
+      const text = 'Повторите строку:\n\n' + getPoemText(nextLearnData);
+      return Reply.text(text);
+    } else {
+      currentBlock.learnedRows.push(currentRow.index);
+      console.log('repeat block');
+      const nextLearnData = { ...learnData, currentBlock, textType: 'block' } as ILearnData;
+      saveLearnData(ctx.session, nextLearnData);
+      const text = 'Повторите уже выученые строки:\n\n' + getPoemText(nextLearnData);
+      return Reply.text(text);
+    }
+  }
+};
+
 const atLearn = new Scene(LEARN_SCENE);
 
 atLearn.command(/дальше/, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   console.log('currentBlock is complited');
+  console.log(learnData);
   const { currentBlock, poem } = learnData;
+  if (!currentBlock.complited) {
+    const poemText = getPoemText(learnData);
+    const text = 'Продолжайте учить:\n\n' + poemText;
+    return Reply.text({ text, tts: 'Сначала выучите текущий блок!\n' + text });
+  }
   const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index + 1, 0);
   if (!nextLearnData) {
     ctx.leave();
@@ -173,53 +231,28 @@ atLearn.command('повторить блок', (ctx) => {
   return Reply.text(text);
 });
 
+atLearn.command(/продолжить/, (ctx) => {
+  const learnData = getOldLearnData(ctx.session);
+  const poemText = getPoemText(learnData);
+  if (!learnData.errorCount) return Reply.text('Вы не допустили ни одной ошибки. Продолжайте учить:\n\n' + poemText);
+  return goLearnNext(ctx, { ...learnData, errorCount: 0 });
+});
+
 atLearn.any((ctx) => {
   const learnData = getOldLearnData(ctx.session);
   const poemText = getPoemText(learnData);
-  if (compareText(poemText, ctx.message)) {
-    const { currentBlock, currentRow, poem } = learnData;
-    if (currentRow.isLast && currentBlock.learnedRows.includes(currentRow.index)) {
-      if (currentBlock.isLast) {
-        console.log('currentBlock is last');
-        return Reply.text(getPoemText({ ...learnData, textType: 'full' }));
-      }
-      console.log('currentRow is last');
-      if (currentBlock.rowsCount > 1 && currentBlock.index != 0 && !currentBlock.complited && currentBlock.rowsCount > 2) {
-        console.log('currentBlock is not complited');
-        currentBlock.complited = true;
-        const nextLearnData = { ...learnData, currentBlock, textType: 'full' } as ILearnData;
-        saveLearnData(ctx.session, nextLearnData);
-        const text = 'Молодец! Блок закончен, теперь повтори его полностью:\n\n' + getPoemText(nextLearnData);
-        return Reply.text(text);
-      } else {
-        return Reply.text('Двигаемся дальше, потворяем блок или весь стих?');
-      }
-    } else {
-      console.log('next row');
-      if (currentBlock.learnedRows.includes(currentRow.index)) {
-        console.log('new row');
-        const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index, currentRow.index + 1);
-        if (!nextLearnData) {
-          ctx.leave();
-          return Reply.text('Переход в меню');
-        }
-        saveLearnData(ctx.session, nextLearnData);
-        const text = 'Повторите строку:\n\n' + getPoemText(nextLearnData);
-        return Reply.text(text);
-      } else {
-        currentBlock.learnedRows.push(currentRow.index);
-        console.log('repeat block');
-        const nextLearnData = { ...learnData, currentBlock, textType: 'block' } as ILearnData;
-        saveLearnData(ctx.session, nextLearnData);
-        const text = 'Повторите уже выученые строки:\n\n' + getPoemText(nextLearnData);
-        return Reply.text(text);
-      }
-    }
+  const matchDigit = levenshtein.similarity(poemText.toLowerCase(), ctx.message.toLowerCase());
+  console.log(matchDigit);
+  return goLearnNext(ctx, learnData);
+  if (matchDigit > 0.5) {
+    return goLearnNext(ctx, learnData);
   } else {
     saveLearnData(ctx.session, { ...learnData, errorCount: learnData.errorCount + 1 });
-    return Reply.text(`Вы допустили ошибку. Повторите еще раз\n\n${poemText}`);
+    const matchText = `Твой текст совпал на ${(matchDigit * 100).toFixed(1)}%.`;
+    return Reply.text({ text: `${matchText} Повторите еще раз\n\n${poemText}`, tts: `${matchText} Скажи "Продолжить", чтобы учить дальше или повтори текст: \n\n${poemText}` });
   }
 });
+
 atLearn.command(...exitHandler);
 atLearn.command(...backHandler);
 
@@ -264,7 +297,7 @@ atFindMenu.any(async (ctx) => {
       }
     }
   }
-  const text = `Параметры поиска: 
+  const text = `Параметры поиска:
 Автор: ${author}
 Название: ${title}`;
   const items = await searchPoems(author, title);
@@ -460,11 +493,23 @@ alice.command(/новый|новое|другое|найти|поиск|иска
   return Reply.text(message);
 });
 alice.command(/учить|продолжи/i, (ctx) => {
-  //   const c = ctx as IStageContext;
-  //   addSceneHistory(c.session, LEARN_SCENE);
-  //   c.enter(LEARN_SCENE);
-  //   const message = String(sample(sceneMessages['LEARN_SCENE']));
-  return Reply.text('Я это еще не юмею');
+  const c = ctx as IStageContext;
+  const learnData = getOldLearnData(c.session);
+  if (!learnData) {
+    addSceneHistory(c.session, FIND_MENU_SCENE);
+    c.enter(FIND_MENU_SCENE);
+    return Reply.text('У вас нет начатых стихов. Назовите автора или название, чтобы начать поиск');
+  }
+  addSceneHistory(c.session, LEARN_SCENE);
+  c.enter(LEARN_SCENE);
+  const { poem } = learnData;
+  const text = `Продолжаем учить стих ${poem.author} - ${poem.title}`;
+  const tts = `${text}
+Скажите "Дальше", чтобы начать учит новую строку.
+Скажить "Повторить стих", чтобы повторить весь стих.
+Скажите "Повторить блок", чтобы повторить последний блок.`;
+  return Reply.text({ text, tts });
+  // return Reply.text('Я это еще не юмею');
 });
 alice.command(/запомни|запиши|запись|записать|запомнить/i, () =>
   Reply.text('К сожалению, я не умею записывать ваш голос. Перейдите на сайт', { buttons: [Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://www.google.com' })] })
@@ -484,36 +529,3 @@ alice.registerScene(atSelectList);
 alice.listen(port);
 
 console.log(1);
-
-// const findByTag = (queryOriginal: string): IPoemsData => {
-//   const query = queryOriginal.toLowerCase();
-//   return Object.entries(Base)
-//     .filter(([, value]) => value.tags.includes(query))
-//     .reduce((acc, [key, item]) => ({ ...acc, [key]: item }), {} as IPoemsData);
-// };
-
-// const findAuthor = (query: string): IAuthorInfo | null => {
-//   const regExp = new RegExp(query.toLowerCase(), 'gi');
-//   const authorName = BaseItems.find(({ author }) => author.match(regExp))?.author;
-//   if (!authorName) return null;
-//   const poemsCount = BaseItems.filter(({ author }) => author.match(regExp)).length;
-//   return { name: authorName, poemsCount };
-// };
-
-// const findPoemsByAll = (query: string, offset = 0): IPoemsData => {
-//   // const query = queryOriginal;
-//   const regExp = new RegExp(query.toLowerCase(), 'gi');
-//   const limit = 5;
-//   return BaseItems.filter(({ author, title }) => (author + title).match(regExp))
-//     .slice(offset, offset + limit)
-//     .reduce((acc, item) => ({ ...acc, [String(item.id)]: item }), {} as IPoemsData);
-// };
-
-// const findPoemsBy = (key: FindProperty, query: string, offset = 0): IPoemsData => {
-//   // const query = queryOriginal;
-//   const regExp = new RegExp(query.toLowerCase(), 'gi');
-//   const limit = 5;
-//   return BaseItems.filter((value) => value[key].match(regExp))
-//     .slice(offset, offset + limit)
-//     .reduce((acc, item) => ({ ...acc, [String(item.id)]: item }), {} as IPoemsData);
-// };
