@@ -229,7 +229,7 @@ atLearn.any((ctx) => {
     const poemText = getPoemText(learnData);
     const matchDigit = string_comparison_1.levenshtein.similarity(poemText.toLowerCase(), ctx.message.toLowerCase());
     console.log(matchDigit);
-    return goLearnNext(ctx, learnData);
+    // return goLearnNext(ctx, learnData);
     if (matchDigit > 0.5) {
         return goLearnNext(ctx, learnData);
     }
