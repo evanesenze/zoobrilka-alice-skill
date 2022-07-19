@@ -487,6 +487,9 @@ alice.any(wrongHandler);
 alice.registerScene(atLearn);
 alice.registerScene(atFindMenu);
 alice.registerScene(atSelectList);
-Api_1.app.use('/', alice.handleRequest);
+Api_1.app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield alice.handleRequest(req.body);
+    return res.send(result);
+}));
 // alice.listen(port);
 console.log(1);

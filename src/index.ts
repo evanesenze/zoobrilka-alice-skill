@@ -527,7 +527,10 @@ alice.registerScene(atLearn);
 alice.registerScene(atFindMenu);
 alice.registerScene(atSelectList);
 
-app.use('/', alice.handleRequest);
+app.post('/', async (req, res) => {
+  const result = await alice.handleRequest(req.body);
+  return res.send(result);
+});
 
 // alice.listen(port);
 
