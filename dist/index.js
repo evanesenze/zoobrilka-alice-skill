@@ -9,12 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("./Api");
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
+const Api_1 = require("./Api");
 const string_comparison_1 = require("string-comparison");
 const lodash_1 = require("lodash");
 const Base_1 = require("./Base");
-const port = Number(process.env.PORT) || 3000;
+// const port = Number(process.env.PORT) || 3000;
 const ROWS_COUNT = 2;
 const alice = new yandex_dialogs_sdk_1.Alice();
 const exitHandler = [
@@ -487,5 +487,6 @@ alice.any(wrongHandler);
 alice.registerScene(atLearn);
 alice.registerScene(atFindMenu);
 alice.registerScene(atSelectList);
-alice.listen(port);
+Api_1.app.use('/', alice.handleRequest);
+// alice.listen(port);
 console.log(1);

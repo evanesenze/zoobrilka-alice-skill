@@ -1,7 +1,7 @@
-import './Api';
 import { Alice, CommandCallback, IContext, ISession, IStageContext, Markup, Reply, Scene } from 'yandex-dialogs-sdk';
 import { IApiEntityYandexFio, IApiEntityYandexFioValue } from 'yandex-dialogs-sdk/dist/api/nlu';
 import { CommandDeclaration } from 'yandex-dialogs-sdk/dist/command/command';
+import { app } from './Api';
 import { levenshtein } from 'string-comparison';
 import { sample } from 'lodash';
 import { searchPoems } from './Base';
@@ -11,7 +11,7 @@ interface IApiEntityYandexFioNew extends IApiEntityYandexFio {
   tokens: { start: number; end: number };
 }
 
-const port = Number(process.env.PORT) || 3000;
+// const port = Number(process.env.PORT) || 3000;
 const ROWS_COUNT = 2;
 const alice = new Alice();
 
@@ -526,6 +526,9 @@ alice.any(wrongHandler);
 alice.registerScene(atLearn);
 alice.registerScene(atFindMenu);
 alice.registerScene(atSelectList);
-alice.listen(port);
+
+app.use('/', alice.handleRequest);
+
+// alice.listen(port);
 
 console.log(1);

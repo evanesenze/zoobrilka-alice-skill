@@ -1,6 +1,6 @@
 import express, { json, urlencoded } from 'express';
 import { getPoem } from '../Base';
-const port = 3001;
+const port = Number(process.env.PORT) || 3000;
 const app = express();
 
 app.use(json());
@@ -15,3 +15,5 @@ app.post('/api/getPoem', async (req, res) => {
 });
 
 app.listen(port, () => console.log('express running on port ' + port));
+
+export { app };
