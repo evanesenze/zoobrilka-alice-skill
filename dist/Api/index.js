@@ -27,15 +27,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.app = void 0;
 const express_1 = __importStar(require("express"));
+const cors_1 = __importDefault(require("cors"));
 const Base_1 = require("../Base");
 const port = Number(process.env.PORT) || 3000;
 const app = (0, express_1.default)();
 exports.app = app;
 app.use((0, express_1.json)());
 app.use((0, express_1.urlencoded)({ extended: false }));
+app.use((0, cors_1.default)());
 app.post('/api/getPoem', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { poemId } = req.body;
     if (!poemId)

@@ -5,6 +5,7 @@ import { app } from './Api';
 import { levenshtein } from 'string-comparison';
 import { sample } from 'lodash';
 import { searchPoems } from './Base';
+
 type IHandlerType = [declaration: CommandDeclaration<IStageContext>, callback: CommandCallback<IStageContext>];
 
 interface IApiEntityYandexFioNew extends IApiEntityYandexFio {
@@ -277,7 +278,7 @@ atFindMenu.any(async (ctx) => {
   const entities = ctx.nlu?.entities;
   console.log(entities);
   let author = 'Не задан';
-  let title = `${ctx.message[0].toUpperCase()}${ctx.message.slice(1).toLocaleLowerCase()}`;
+  let title = ctx.message;
   const names = entities
     ?.filter((item) => item.type === 'YANDEX.FIO')
     .map((item) => item as IApiEntityYandexFioNew)
@@ -292,9 +293,9 @@ atFindMenu.any(async (ctx) => {
       const words = title.split(' ');
       words.splice(name.tokens.start, name.tokens.end - name.tokens.start);
       title = words.join(' ');
-      if (title.length) {
-        title = `${title[0].toUpperCase()}${title.slice(1).toLowerCase()}`;
-      }
+      // if (title.length) {
+      //   title = `${title[0].toUpperCase()}${title.slice(1).toLowerCase()}`;
+      // }
     }
   }
   const text = `Параметры поиска:
@@ -531,7 +532,5 @@ app.post('/', async (req, res) => {
   const result = await alice.handleRequest(req.body);
   return res.send(result);
 });
-
-// alice.listen(port);
 
 console.log(1);

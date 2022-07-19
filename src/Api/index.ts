@@ -1,10 +1,12 @@
 import express, { json, urlencoded } from 'express';
+import cors from 'cors';
 import { getPoem } from '../Base';
 const port = Number(process.env.PORT) || 3000;
 const app = express();
 
 app.use(json());
 app.use(urlencoded({ extended: false }));
+app.use(cors());
 
 app.post('/api/getPoem', async (req, res) => {
   const { poemId } = req.body as { poemId?: string };

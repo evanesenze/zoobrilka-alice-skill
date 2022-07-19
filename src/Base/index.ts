@@ -51,20 +51,32 @@ const searchPoems = async (author?: string, title?: string, tagName?: string) =>
   if (title)
     arr.push(
       poemsRef
-        .orderByChild('title')
+        .orderByChild('queryTitle')
         .startAt(title)
         .endAt(title + '\uf8ff')
         .limitToFirst(5)
         .once('value')
     );
-  let res = (await Promise.all(arr).then((values) => values.map((value) => Object.values(value.val() ?? {}) as IPoem[])))
-    .reduce((acc, value) => [...acc, ...value.filter((value) => acc.filter((x) => x.author === value.author && x.title === value.title).length === 0)], [])
-    .slice(0, 5);
+  if (tagName)
+    arr.push(
+      poemsRef
+        .orderByChild(`tags/${tagName}/`)
+        .equalTo(true)
+        // .startAt(title)
+        // .endAt(title + '\uf8ff')
+        .limitToFirst(5)
+        .once('value')
+    );
+  let res = (await Promise.all(arr).then((values) => values.map((value) => Object.values(value.val() ?? {}) as IPoem[]))).reduce(
+    (acc, value) => [...acc, ...value.filter((value) => acc.filter((x) => x.author === value.author && x.title === value.title).length === 0)],
+    []
+  );
+  // .slice(0, 5);
   // if (title) res = res.sort((a, b) => levenshtein.similarity(b.title, title) - levenshtein.similarity(a.title, title));
   // if (author) res = res.sort((a, b) => levenshtein.similarity(b.author, author) - levenshtein.similarity(a.author, author));
   res = res.sort((a, b) => comparePoem(a, b, title ?? '', author ?? ''));
   console.timeEnd('searchPoems');
-  console.log(res.map((x) => `${x.author} - ${x.title}`));
+  console.log(res.map((x) => `${x.author} - ${x.title} | ${Object.keys(x.tags).join()}`));
   return res;
 };
 

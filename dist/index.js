@@ -262,7 +262,7 @@ atFindMenu.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const entities = (_a = ctx.nlu) === null || _a === void 0 ? void 0 : _a.entities;
     console.log(entities);
     let author = 'Не задан';
-    let title = `${ctx.message[0].toUpperCase()}${ctx.message.slice(1).toLocaleLowerCase()}`;
+    let title = ctx.message;
     const names = entities === null || entities === void 0 ? void 0 : entities.filter((item) => item.type === 'YANDEX.FIO').map((item) => item).filter((item) => !!item.value.first_name);
     if (names === null || names === void 0 ? void 0 : names.length) {
         const namesCount = names.length - 1;
@@ -274,9 +274,9 @@ atFindMenu.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
             const words = title.split(' ');
             words.splice(name.tokens.start, name.tokens.end - name.tokens.start);
             title = words.join(' ');
-            if (title.length) {
-                title = `${title[0].toUpperCase()}${title.slice(1).toLowerCase()}`;
-            }
+            // if (title.length) {
+            //   title = `${title[0].toUpperCase()}${title.slice(1).toLowerCase()}`;
+            // }
         }
     }
     const text = `Параметры поиска:
@@ -491,5 +491,4 @@ Api_1.app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     const result = yield alice.handleRequest(req.body);
     return res.send(result);
 }));
-// alice.listen(port);
 console.log(1);
