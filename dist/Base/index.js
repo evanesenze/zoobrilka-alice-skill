@@ -71,13 +71,14 @@ const searchPoems = (author, title, tagName) => __awaiter(void 0, void 0, void 0
             // .endAt(title + '\uf8ff')
             .limitToFirst(5)
             .once('value'));
-    let res = (yield Promise.all(arr).then((values) => values.map((value) => { var _a; return Object.values((_a = value.val()) !== null && _a !== void 0 ? _a : {}); }))).reduce((acc, value) => [...acc, ...value.filter((value) => acc.filter((x) => x.author === value.author && x.title === value.title).length === 0)], []);
-    // .slice(0, 5);
+    let res = (yield Promise.all(arr).then((values) => values.map((value) => { var _a; return Object.values((_a = value.val()) !== null && _a !== void 0 ? _a : {}); })))
+        .reduce((acc, value) => [...acc, ...value.filter((value) => acc.filter((x) => x.author === value.author && x.title === value.title).length === 0)], [])
+        .slice(0, 5);
     // if (title) res = res.sort((a, b) => levenshtein.similarity(b.title, title) - levenshtein.similarity(a.title, title));
     // if (author) res = res.sort((a, b) => levenshtein.similarity(b.author, author) - levenshtein.similarity(a.author, author));
     res = res.sort((a, b) => comparePoem(a, b, title !== null && title !== void 0 ? title : '', author !== null && author !== void 0 ? author : ''));
     console.timeEnd('searchPoems');
-    console.log(res.map((x) => `${x.author} - ${x.title} | ${Object.keys(x.tags).join()}`));
+    console.log(res.map((x) => `${x.author} - ${x.title}`));
     return res;
 });
 exports.searchPoems = searchPoems;
