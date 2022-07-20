@@ -28,9 +28,9 @@ const savePoem = async (poem: IPoem) => {
   poemsRef.child(String(poem.id)).update(poem);
 };
 
-const comparePoem = (a: IPoem, b: IPoem, title: string, author: string): number => {
-  const poem1 = levenshtein.similarity(a.title, title) + levenshtein.similarity(a.author, author);
-  const poem2 = levenshtein.similarity(b.title, title) + levenshtein.similarity(b.author, author);
+const comparePoem = (a: IPoem, b: IPoem, title: string, author?: string): number => {
+  const poem1 = levenshtein.similarity(a.title, title) + levenshtein.similarity(a.author, author ?? '');
+  const poem2 = levenshtein.similarity(b.title, title) + levenshtein.similarity(b.author, author ?? '');
   return poem2 - poem1;
 };
 
@@ -67,4 +67,4 @@ const searchPoems = async (author?: string, title?: string) => {
   return res;
 };
 
-export { getPoem, poemIsExists, savePoem, searchPoems };
+export { getPoem, poemIsExists, savePoem, searchPoems, comparePoem };

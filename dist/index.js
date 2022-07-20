@@ -10,16 +10,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
+const Base_1 = require("./Base");
 const Api_1 = require("./Api");
 const string_comparison_1 = require("string-comparison");
 const lodash_1 = require("lodash");
-const Base_1 = require("./Base");
 const ROWS_COUNT = 2;
 const alice = new yandex_dialogs_sdk_1.Alice();
 const exitHandler = [
-    ['выйти', 'хватит', 'стоп', 'я устал'],
+    ['выйти', 'хватит', 'стоп', 'я устал', 'выход'],
     (ctx) => {
-        ctx.leave();
+        ctx.enter('');
+        cleanSceneHistory(ctx.session);
         return yandex_dialogs_sdk_1.Reply.text('Хорошо, будет скучно - обращайтесь.', { end_session: true });
     },
 ];
@@ -41,7 +42,7 @@ const wrongHandler = (ctx) => {
     const c = ctx;
     const currentScene = getCurrentScene(c.session);
     if (!currentScene)
-        return yandex_dialogs_sdk_1.Reply.text('К сожалению я не поняла, что Вы хотели сказать, повторите пожалуйста.');
+        return yandex_dialogs_sdk_1.Reply.text('К сожалению я не понял, что вы хотели сказать, повторите пожалуйста.');
     const hint = String((0, lodash_1.sample)(sceneHints[currentScene]));
     return yandex_dialogs_sdk_1.Reply.text(hint);
 };
@@ -68,6 +69,7 @@ const removeSceneHistory = (session) => {
     session.set('sceneHistory', arr);
     return arr[arr.length - 1];
 };
+const cleanSceneHistory = (session) => session.set('sceneHistory', []);
 const addSceneHistory = (session, newSceneName) => {
     const arr = (session.get('sceneHistory') || []);
     arr.push(newSceneName);
@@ -78,10 +80,10 @@ const getOldLearnData = (session) => session.get('learnData');
 const getBlocksData = (text) => text.split('\n\n').map((item) => item.split('\n'));
 const getNewLearnData = (poem, textType, currentBlockIndex = 0, currentRowIndex = 0) => {
     const blocksData = getBlocksData(poem.text);
-    if (currentBlockIndex > blocksData.length - 1)
+    const blocksCount = blocksData.length;
+    if (currentBlockIndex > blocksCount - 1)
         return null;
     const rows = blocksData[currentBlockIndex];
-    const blocksCount = blocksData.length - 1;
     const rowsCount = Math.ceil(rows.length / ROWS_COUNT);
     const learnedRows = [0];
     return {
@@ -96,7 +98,7 @@ const getNewLearnData = (poem, textType, currentBlockIndex = 0, currentRowIndex 
             index: currentBlockIndex,
             rowsCount,
             complited: learnedRows.length === rowsCount,
-            isLast: currentBlockIndex === blocksCount,
+            isLast: currentBlockIndex === blocksCount - 1,
             learnedRows,
         },
         currentRow: {
@@ -126,7 +128,7 @@ const getPoemText = (learnData) => {
             return currentRowText.substring(0, 900);
     }
 };
-const deleteSelectData = (session) => session.delete('selectListData');
+const deleteSelectListData = (session) => session.delete('selectListData');
 const getSelectListData = (session) => session.get('selectListData');
 const saveSelectListData = (session, newData) => session.set('selectListData', newData); // !
 const goLearnNext = (ctx, learnData) => {
@@ -184,6 +186,39 @@ const goLearnNext = (ctx, learnData) => {
         }
     }
 };
+const extractTitleAndAuthor = (message, entities) => {
+    var _a, _b, _c, _d;
+    let author;
+    let title = message;
+    const names = entities === null || entities === void 0 ? void 0 : entities.filter((item) => item.type === 'YANDEX.FIO').map((item) => item).filter((item) => !!item.value.first_name);
+    if (names === null || names === void 0 ? void 0 : names.length) {
+        const namesCount = names.length - 1;
+        const name = names[namesCount];
+        if (names === null || names === void 0 ? void 0 : names.length) {
+            const first_name = `${name.value.first_name[0].toUpperCase()}${name.value.first_name.slice(1).toLocaleLowerCase()}`;
+            const last_name = `${(_b = (_a = name.value.last_name) === null || _a === void 0 ? void 0 : _a[0].toUpperCase()) !== null && _b !== void 0 ? _b : ''}${(_d = (_c = name.value.last_name) === null || _c === void 0 ? void 0 : _c.slice(1).toLocaleLowerCase()) !== null && _d !== void 0 ? _d : ''}`;
+            author = `${first_name} ${last_name}`.trim();
+            const words = title.split(' ');
+            words.splice(name.tokens.start, name.tokens.end - name.tokens.start);
+            title = words.join(' ');
+        }
+    }
+    return { author, title };
+};
+const confirmSelectPoem = (ctx, selectedPoem, selectListData) => {
+    const blocksData = getBlocksData(selectedPoem.text);
+    const lastBlockIndex = blocksData.length - 1;
+    const lastBlockRows = blocksData[lastBlockIndex];
+    const lastBlockRowIndex = lastBlockRows.length - 1;
+    const newLearnData = getNewLearnData(selectedPoem, 'full', lastBlockIndex, lastBlockRowIndex);
+    if (!newLearnData) {
+        ctx.leave();
+        return yandex_dialogs_sdk_1.Reply.text('Вышли назад');
+    }
+    const text = getPoemText(newLearnData);
+    saveSelectListData(ctx.session, Object.assign(Object.assign({}, selectListData), { selectedPoem }));
+    return yandex_dialogs_sdk_1.Reply.text(`Ты выбрал ${selectedPoem.author} - ${selectedPoem.title}\n\n${text}\nУчим его?`);
+};
 const atLearn = new yandex_dialogs_sdk_1.Scene(LEARN_SCENE);
 atLearn.command(/дальше/, (ctx) => {
     const learnData = getOldLearnData(ctx.session);
@@ -192,7 +227,7 @@ atLearn.command(/дальше/, (ctx) => {
     const { currentBlock, poem } = learnData;
     if (!currentBlock.complited) {
         const poemText = getPoemText(learnData);
-        const text = 'Продолжайте учить:\n\n' + poemText;
+        const text = 'Текущий блок еще не выучен.\nПродолжайте учить:\n\n' + poemText;
         return yandex_dialogs_sdk_1.Reply.text({ text, tts: 'Сначала выучите текущий блок!\n' + text });
     }
     const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index + 1, 0);
@@ -245,26 +280,12 @@ atFindMenu.command(/рейтинг/i, () => yandex_dialogs_sdk_1.Reply.text('Р�
 atFindMenu.command(...exitHandler);
 atFindMenu.command(...backHandler);
 atFindMenu.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e;
+    var _a;
     const entities = (_a = ctx.nlu) === null || _a === void 0 ? void 0 : _a.entities;
     console.log(entities);
-    let author = 'Не задан';
-    let title = ctx.message;
-    const names = entities === null || entities === void 0 ? void 0 : entities.filter((item) => item.type === 'YANDEX.FIO').map((item) => item).filter((item) => !!item.value.first_name);
-    if (names === null || names === void 0 ? void 0 : names.length) {
-        const namesCount = names.length - 1;
-        const name = names[namesCount];
-        if (names === null || names === void 0 ? void 0 : names.length) {
-            const first_name = `${name.value.first_name[0].toUpperCase()}${name.value.first_name.slice(1).toLocaleLowerCase()}`;
-            const last_name = `${(_c = (_b = name.value.last_name) === null || _b === void 0 ? void 0 : _b[0].toUpperCase()) !== null && _c !== void 0 ? _c : ''}${(_e = (_d = name.value.last_name) === null || _d === void 0 ? void 0 : _d.slice(1).toLocaleLowerCase()) !== null && _e !== void 0 ? _e : ''}`;
-            author = `${first_name} ${last_name}`.trim();
-            const words = title.split(' ');
-            words.splice(name.tokens.start, name.tokens.end - name.tokens.start);
-            title = words.join(' ');
-        }
-    }
+    const { title, author } = extractTitleAndAuthor(ctx.message, entities);
     const text = `Параметры поиска:
-Автор: ${author}
+Автор: ${author !== null && author !== void 0 ? author : 'Не задан'}
 Название: ${title}`;
     const items = yield (0, Base_1.searchPoems)(author, title);
     let tts = 'Ничего не смог найти';
@@ -278,7 +299,7 @@ atFindMenu.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
 }));
 const atSelectList = new yandex_dialogs_sdk_1.Scene(SELECT_LIST_SCENE);
 atSelectList.command('Поиск', (ctx) => {
-    deleteSelectData(ctx.session);
+    deleteSelectListData(ctx.session);
     const text = String((0, lodash_1.sample)(sceneMessages['FIND_MENU_SCENE']));
     ctx.enter(FIND_MENU_SCENE);
     return yandex_dialogs_sdk_1.Reply.text(text);
@@ -297,6 +318,8 @@ atSelectList.command(/да|учим/, (ctx) => {
     }
     const text = getPoemText(learnData);
     saveLearnData(ctx.session, learnData);
+    addSceneHistory(ctx.session, LEARN_SCENE);
+    deleteSelectListData(ctx.session);
     ctx.enter(LEARN_SCENE);
     return yandex_dialogs_sdk_1.Reply.text('Повторите строку:\n\n' + text);
 });
@@ -325,22 +348,14 @@ atSelectList.any((ctx) => {
             const currentNumber = (_b = numbers.find((item) => itemNumbers.includes(Number(item.value)))) === null || _b === void 0 ? void 0 : _b.value;
             console.log(currentNumber);
             const selectedPoem = items.find((_, i) => i + 1 === currentNumber);
-            if (selectedPoem) {
-                const blocksData = getBlocksData(selectedPoem.text);
-                const lastBlockIndex = blocksData.length - 1;
-                const lastBlockRows = blocksData[lastBlockIndex];
-                const lastBlockRowIndex = lastBlockRows.length - 1;
-                const newLearnData = getNewLearnData(selectedPoem, 'full', lastBlockIndex, lastBlockRowIndex);
-                if (!newLearnData) {
-                    ctx.leave();
-                    return yandex_dialogs_sdk_1.Reply.text('Вышли назад');
-                }
-                const text = getPoemText(newLearnData);
-                saveSelectListData(ctx.session, Object.assign(Object.assign({}, selectListData), { selectedPoem }));
-                return yandex_dialogs_sdk_1.Reply.text(`Ты выбрал ${selectedPoem.author} - ${selectedPoem.title}\n\n${text}\nУчим его?`);
-            }
+            if (selectedPoem)
+                return confirmSelectPoem(ctx, selectedPoem, selectListData);
         }
     }
+    const { title, author } = extractTitleAndAuthor(ctx.message, entities);
+    const bestMatch = [...selectListData.items].sort((a, b) => (0, Base_1.comparePoem)(a, b, title, author))[0];
+    if (bestMatch)
+        return confirmSelectPoem(ctx, bestMatch, selectListData);
     const tts = String((0, lodash_1.sample)(sceneHints['SELECT_LIST_SCENE']));
     const buttons = selectListData.items.map(({ title, author }, i) => yandex_dialogs_sdk_1.Markup.button(`${i + 1}). ${author} | ${title}`.substring(0, 128)));
     return yandex_dialogs_sdk_1.Reply.text({ text: 'Выберите стих из списка:', tts }, { buttons });
@@ -366,18 +381,16 @@ alice.command(/учить|продолжи/i, (ctx) => {
     if (!learnData) {
         addSceneHistory(c.session, FIND_MENU_SCENE);
         c.enter(FIND_MENU_SCENE);
-        return yandex_dialogs_sdk_1.Reply.text('У вас нет начатых стихов. Назовите автора или название, чтобы начать поиск');
+        return yandex_dialogs_sdk_1.Reply.text('У вас нет начатых стихов. Назовите имя и фамилию или название стиха, чтобы начать поиск');
     }
     addSceneHistory(c.session, LEARN_SCENE);
     c.enter(LEARN_SCENE);
     const { poem } = learnData;
-    const text = `Продолжаем учить стих ${poem.author} - ${poem.title}`;
-    const tts = `${text}
-Скажите "Дальше", чтобы начать учит новую строку.
-Скажить "Повторить стих", чтобы повторить весь стих.
-Скажите "Повторить блок", чтобы повторить последний блок.`;
-    return yandex_dialogs_sdk_1.Reply.text({ text, tts });
-    // return Reply.text('Я это еще не юмею');
+    const poemText = getPoemText(learnData);
+    const text = `Продолжаем учить стих ${poem.author} - ${poem.title}
+Повторите:
+${poemText}`;
+    return yandex_dialogs_sdk_1.Reply.text(text);
 });
 alice.command(/запомни|запиши|запись|записать|запомнить/i, () => yandex_dialogs_sdk_1.Reply.text('К сожалению, я не умею записывать ваш голос. Перейдите на сайт', { buttons: [yandex_dialogs_sdk_1.Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://www.google.com' })] }));
 alice.command(/расскажи|умеешь|не/i, () => yandex_dialogs_sdk_1.Reply.text(`Что ж, пора рассказать Вам обо мне.
@@ -386,11 +399,31 @@ alice.command(/расскажи|умеешь|не/i, () => yandex_dialogs_sdk_1.
   Так же по команде “Запомни” я запишу Ваше чтение.`));
 alice.command(...exitHandler);
 alice.any(wrongHandler);
+const getAllSessionData = (session) => {
+    if (!session)
+        return;
+    const functions = {
+        currentScene: getCurrentScene,
+        sceneHistory: (session) => session.get('sceneHistory') || [],
+        selectListData: getSelectListData,
+        learnData: getOldLearnData,
+    };
+    const res = Object.entries(functions).reduce((acc, [name, func]) => (Object.assign(Object.assign({}, acc), { [name]: func(session) })), {});
+    console.log(JSON.stringify(res, null, 2));
+};
+alice.on('response', (ctx) => {
+    // const c = ctx as IStageContext;
+    // console.log(2);
+    // getAllSessionData(c.session);
+    // console.log(JSON.stringify(ctx.data, null, 2));
+});
 alice.registerScene(atLearn);
 alice.registerScene(atFindMenu);
 alice.registerScene(atSelectList);
 Api_1.app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // console.log(req.body);
     const result = yield alice.handleRequest(req.body);
+    // console.log(result);
     return res.send(result);
 }));
 console.log(1);

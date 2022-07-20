@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchPoems = exports.savePoem = exports.poemIsExists = exports.getPoem = void 0;
+exports.comparePoem = exports.searchPoems = exports.savePoem = exports.poemIsExists = exports.getPoem = void 0;
 // import 'dotenv/config';
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const string_comparison_1 = require("string-comparison");
@@ -40,10 +40,11 @@ const savePoem = (poem) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.savePoem = savePoem;
 const comparePoem = (a, b, title, author) => {
-    const poem1 = string_comparison_1.levenshtein.similarity(a.title, title) + string_comparison_1.levenshtein.similarity(a.author, author);
-    const poem2 = string_comparison_1.levenshtein.similarity(b.title, title) + string_comparison_1.levenshtein.similarity(b.author, author);
+    const poem1 = string_comparison_1.levenshtein.similarity(a.title, title) + string_comparison_1.levenshtein.similarity(a.author, author !== null && author !== void 0 ? author : '');
+    const poem2 = string_comparison_1.levenshtein.similarity(b.title, title) + string_comparison_1.levenshtein.similarity(b.author, author !== null && author !== void 0 ? author : '');
     return poem2 - poem1;
 };
+exports.comparePoem = comparePoem;
 const searchPoems = (author, title) => __awaiter(void 0, void 0, void 0, function* () {
     console.time('searchPoems');
     console.log(author);
