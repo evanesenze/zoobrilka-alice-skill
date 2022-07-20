@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "title": "Zoobrilka REST API"
   },
-  "host": "zoobrilka-alice-skill.herokuapp.com/",
+  "host": "zoobrilka-alice-skill.herokuapp.com",
   "basePath": "/",
   "tags": [
     {
