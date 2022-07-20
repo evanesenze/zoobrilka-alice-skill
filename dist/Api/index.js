@@ -33,21 +33,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.app = void 0;
 const express_1 = __importStar(require("express"));
-const cors_1 = __importDefault(require("cors"));
 const Base_1 = require("../Base");
+const cors_1 = __importDefault(require("cors"));
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const swagger_json_1 = __importDefault(require("./swagger.json"));
 const port = Number(process.env.PORT) || 3000;
 const app = (0, express_1.default)();
 exports.app = app;
 app.use((0, express_1.json)());
 app.use((0, express_1.urlencoded)({ extended: false }));
 app.use((0, cors_1.default)());
-app.post('/api/getPoem', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { poemId } = req.body;
-    if (!poemId)
-        return res.status(400).send({ error: { message: 'Field "poemId" is empty' } });
-    const poem = yield (0, Base_1.getPoem)(poemId);
+app.get('/api/poem/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    if (!id)
+        return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
+    const poem = yield (0, Base_1.getPoem)(id);
     if (!poem)
-        return res.status(400).send({ error: { message: 'Poem not found' } });
+        return res.status(404).send({ error: { message: 'Poem not found' } });
     return res.send({ response: poem });
 }));
+app.get('/api/search', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { author, title } = req.query;
+    const response = yield (0, Base_1.searchPoems)(author, title);
+    return res.send({ response });
+}));
+app.use('/swagger', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_json_1.default));
 app.listen(port, () => console.log('express running on port ' + port));

@@ -12,7 +12,6 @@ interface IApiEntityYandexFioNew extends IApiEntityYandexFio {
   tokens: { start: number; end: number };
 }
 
-// const port = Number(process.env.PORT) || 3000;
 const ROWS_COUNT = 2;
 const alice = new Alice();
 
@@ -257,19 +256,6 @@ atLearn.any((ctx) => {
 atLearn.command(...exitHandler);
 atLearn.command(...backHandler);
 
-// atFindMenu.command(/назван/i, (ctx) => {
-//   addSceneHistory(ctx.session, SELECT_BY_NAME_SCENE);
-//   ctx.enter(SELECT_BY_NAME_SCENE);
-//   const message = String(sample(sceneMessages['SELECT_BY_NAME_SCENE']));
-//   return Reply.text(message);
-// });
-
-// atFindMenu.command(/писател|автор|имя|имени/i, (ctx) => {
-//   addSceneHistory(ctx.session, SELECT_BY_AUTHOR_SCENE);
-//   ctx.enter(SELECT_BY_AUTHOR_SCENE);
-//   const message = String(sample(sceneMessages['SELECT_BY_AUTHOR_SCENE']));
-//   return Reply.text(message);
-// });
 const atFindMenu = new Scene(FIND_MENU_SCENE);
 atFindMenu.command(/рейтинг/i, () => Reply.text('Рейтинг стихов можете посмотреть на сайте', { buttons: [Markup.button({ url: 'https://www.google.com', title: 'Перейти на сайт' })] }));
 atFindMenu.command(...exitHandler);
@@ -293,9 +279,6 @@ atFindMenu.any(async (ctx) => {
       const words = title.split(' ');
       words.splice(name.tokens.start, name.tokens.end - name.tokens.start);
       title = words.join(' ');
-      // if (title.length) {
-      //   title = `${title[0].toUpperCase()}${title.slice(1).toLowerCase()}`;
-      // }
     }
   }
   const text = `Параметры поиска:
@@ -310,106 +293,10 @@ atFindMenu.any(async (ctx) => {
     ctx.enter(SELECT_LIST_SCENE);
   }
   return Reply.text({ text, tts }, { buttons });
-  //   const res = findPoemsByAll(q);
-  //   const items = Object.values(res).sort((a, b) => levenshtein(a.author + a.title, q) - levenshtein(b.author + b.title, q));
-  //   if (items.length) {
-  //     const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${author} - ${title}`));
-  //     saveSelectListData(ctx.session, { items, offset: 0, query: q, key: 'author' });
-  //     ctx.enter(SELECT_LIST_SCENE);
-  //     return Reply.text('Вот что я нашел:\nДля перемещения скажи "Далее/Назад"', { buttons });
-  //   } else if (names?.length) {
-  //     const name = `${names[0].first_name ?? ''} ${names[0].last_name ?? ''}`.trim();
-  //     const res = findPoemsBy('author', name);
-  //     const items = Object.values(res).sort((a, b) => levenshtein(a.author, name) - levenshtein(b.author, name));
-  //     if (!items.length) return Reply.text(`Не нашел автора "${ctx.message}"`);
-  //     const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${author} - ${title}`));
-  //     saveSelectListData(ctx.session, { items, offset: 0, query: name, key: 'author' });
-  //     ctx.enter(SELECT_LIST_SCENE);
-  //     return Reply.text('Вот что я нашел:\nДля перемещения скажи "Далее/Назад"', { buttons });
-  //   }
-  // console.log(ctx);
-  //   return wrongHandler(ctx);
 });
 
-// const atSelectByName = new Scene(SELECT_BY_NAME_SCENE);
-
-// atSelectByName.command(/совет|посоветуй|рекомендация|не знаю/, () => Reply.text(`${sample(BaseItems.map((item) => item.title))} - хороший вариант!`));
-
-// atSelectByName.any((ctx) => {
-//   const q = ctx.message;
-//   return Reply.text('1');
-//   const res = findPoemsBy('title', q);
-//   const items = Object.values(res).sort((a, b) => levenshtein(a.title, q) - levenshtein(b.title, q));
-//   if (!items.length) return Reply.text(`Не нашел автора "${ctx.message}"`);
-//   const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${author} - ${title}`));
-//   saveSelectListData(ctx.session, { items, offset: 0, query: q, key: 'title' });
-//   ctx.enter(SELECT_LIST_SCENE);
-//   return Reply.text('Вот что я нашел:\nДля перемещения скажи "Далее/Назад"', { buttons });
-// });
-
-// atSelectByName.command(...backHandler);
-
-// atSelectByName.command(...exitHandler);
-
-// const atSelectByAuthor = new Scene(SELECT_BY_AUTHOR_SCENE);
-
-// atSelectByAuthor.command(/совет|посоветуй|рекомендация|не знаю/, () => Reply.text(`${sample(BaseItems.map((item) => item.author))} - хороший вариант!`));
-
-// atSelectByAuthor.any((ctx) => {
-//   console.log(ctx);
-//   const entities = ctx.nlu?.entities;
-//   const names = entities?.filter((item) => item.type === 'YANDEX.FIO').map((item) => item.value as IApiEntityYandexFioValue);
-//   if (!names?.length) return Reply.text(`Не нашел автора "${ctx.message}"`);
-//   const name = `${names[0].first_name ?? ''} ${names[0].last_name ?? ''}`.trim();
-//   return Reply.text('1');
-//   const res = findPoemsBy('author', name);
-//   const items = Object.values(res).sort((a, b) => levenshtein(a.author, name) - levenshtein(b.author, name));
-//   if (!items.length) return Reply.text(`Не нашел автора "${ctx.message}"`);
-//   const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${author} - ${title}`));
-//   saveSelectListData(ctx.session, { items, offset: 0, query: name, key: 'author' });
-//   ctx.enter(SELECT_LIST_SCENE);
-//   return Reply.text('Вот что я нашел:\nДля перемещения скажи "Далее/Назад"', { buttons });
-// });
-
-// atSelectByAuthor.command(...backHandler);
-
-// atSelectByAuthor.command(...exitHandler);
-
 const atSelectList = new Scene(SELECT_LIST_SCENE);
-// atSelectList.command('Далее', (ctx) => {
-// const selectListData = getSelectListData(ctx.session);
-// console.log(selectListData);
-// if (!selectListData) return Reply.text('error');
-// const { offset, key, query } = selectListData;
-// const newOffset = offset + 5;
-// return Reply.text('1');
-//   const res = findPoemsBy(key, query, newOffset);
-//   console.log(res);
-//   const newItems = Object.values(res).sort((a, b) => levenshtein(a[key], query) - levenshtein(b[key], query));
-//   const buttons = newItems.map(({ title, author }, i) => Markup.button(`${newOffset + i + 1}). ${author} - ${title}`));
-//   const text = String(sample(sceneMessages['SELECT_LIST_SCENE']));
-//   saveSelectListData(ctx.session, { ...selectListData, items: newItems, offset: newOffset });
-//   return Reply.text(text, { buttons });
-// });
-// atSelectList.command('Назад', (ctx) => {
-//   const selectListData = getSelectListData(ctx.session);
-//   console.log(selectListData);
-//   if (!selectListData) return Reply.text('error');
-//   const { items, offset, key, query } = selectListData;
-//   if (offset === 0) {
-//     const buttons = items.map(({ title, author }, i) => Markup.button(`${offset + i + 1}). ${author} - ${title}`));
-//     return Reply.text('Вы не можете сделать шаг назад - это первый лист', { buttons });
-//   }
-//   const newOffset = offset - 5;
-//   return Reply.text('1');
-//   const res = findPoemsBy(key, query, newOffset);
-//   console.log(res);
-//   const newItems = Object.values(res).sort((a, b) => levenshtein(a[key], query) - levenshtein(b[key], query));
-//   const buttons = newItems.map(({ title, author }, i) => Markup.button(`${newOffset + i + 1}). ${author} - ${title}`));
-//   const text = String(sample(sceneMessages['SELECT_LIST_SCENE']));
-//   saveSelectListData(ctx.session, { ...selectListData, items: newItems, offset: newOffset });
-//   return Reply.text(text, { buttons });
-// });
+
 atSelectList.command('Поиск', (ctx) => {
   deleteSelectData(ctx.session);
   const text = String(sample(sceneMessages['FIND_MENU_SCENE']));
@@ -465,7 +352,12 @@ atSelectList.any((ctx) => {
         const lastBlockIndex = blocksData.length - 1;
         const lastBlockRows = blocksData[lastBlockIndex];
         const lastBlockRowIndex = lastBlockRows.length - 1;
-        const text = getPoemText(getNewLearnData(selectedPoem, 'full', lastBlockIndex, lastBlockRowIndex)!);
+        const newLearnData = getNewLearnData(selectedPoem, 'full', lastBlockIndex, lastBlockRowIndex);
+        if (!newLearnData) {
+          ctx.leave();
+          return Reply.text('Вышли назад');
+        }
+        const text = getPoemText(newLearnData);
         saveSelectListData(ctx.session, { ...selectListData, selectedPoem });
         return Reply.text(`Ты выбрал ${selectedPoem.author} - ${selectedPoem.title}\n\n${text}\nУчим его?`);
       }
