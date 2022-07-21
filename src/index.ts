@@ -1,6 +1,6 @@
 import { Alice, CommandCallback, IContext, ISession, IStageContext, Markup, Reply, Scene } from 'yandex-dialogs-sdk';
 import { IApiEntity, IApiEntityYandexFio } from 'yandex-dialogs-sdk/dist/api/nlu';
-import { comparePoem, searchPoems } from './Base';
+import { cleanLog, comparePoem, saveLog, searchPoems } from './Base';
 import { CommandDeclaration } from 'yandex-dialogs-sdk/dist/command/command';
 import { app } from './Api';
 import { levenshtein } from 'string-comparison';
@@ -19,7 +19,9 @@ const exitHandler: IHandlerType = [
   ['выйти', 'хватит', 'стоп', 'я устал', 'выход'],
   (ctx) => {
     ctx.enter('');
+    if (loggingIsEnable(ctx.session)) cleanLog(ctx.userId);
     cleanSceneHistory(ctx.session);
+    deleteSelectListData(ctx.session);
     return Reply.text('Хорошо, будет скучно - обращайтесь.', { end_session: true });
   },
 ];
@@ -53,27 +55,33 @@ const SELECT_LIST_SCENE: SceneType = 'SELECT_LIST_SCENE';
 const LEARN_SCENE: SceneType = 'LEARN_SCENE';
 
 const sceneMessages: Record<SceneType, string[]> = {
+  MENU: ['меню'],
   LEARN_SCENE: ['Начинаем учить'],
   FIND_MENU_SCENE: ['Назовите имя и фамилию автора или название стиха, чтобы начать поиск. Также можете взглянуть на рейтинг'],
   SELECT_LIST_SCENE: ['Выбери стих из списка\n Для перемещения скажите "Далее/Назад"\nДля перехода к поиску, скажите "Поиск"'],
 };
 
 const sceneHints: Record<SceneType, string[]> = {
+  MENU: ['меню'],
   LEARN_SCENE: ['Учите, ничем не могу помочь'],
   FIND_MENU_SCENE: ['Назовите имя и фамилию автора или название стиха, чтобы начать поиск'],
   SELECT_LIST_SCENE: ['Для выбора стиха, назовите его номер\nДля перехода к поиску, скажите "Поиск"'],
 };
 
-const getCurrentScene = (session: ISession): SceneType | undefined => {
+const enableLogging = (session: ISession) => session.set('logging', true);
+
+const loggingIsEnable = (session: ISession) => session.has('logging');
+
+const getCurrentScene = (session: ISession): SceneType => {
   const arr = (session.get('sceneHistory') || []) as SceneType[];
-  return arr[arr.length - 1];
+  return arr[arr.length - 1] ?? 'MENU';
 };
 
-const removeSceneHistory = (session: ISession): SceneType | undefined => {
+const removeSceneHistory = (session: ISession): SceneType => {
   const arr = (session.get('sceneHistory') || []) as SceneType[];
   arr.pop();
   session.set('sceneHistory', arr);
-  return arr[arr.length - 1];
+  return arr[arr.length - 1] ?? 'MENU';
 };
 
 const cleanSceneHistory = (session: ISession): void => session.set('sceneHistory', []);
@@ -426,26 +434,34 @@ alice.command(/расскажи|умеешь|не/i, () =>
   Я могу помочь выучить стихотворение, достаточно сказать “Учить”.
   Так же по команде “Запомни” я запишу Ваше чтение.`)
 );
+alice.command('лог', (ctx) => {
+  const c = ctx as IStageContext;
+  enableLogging(c.session);
+  return Reply.text('Логирование влючено');
+});
+
 alice.command(...(exitHandler as [declaration: CommandDeclaration<IContext>, callback: CommandCallback<IContext>]));
 alice.any(wrongHandler);
 
 const getAllSessionData = (session?: ISession) => {
-  if (!session) return;
+  if (!session)
+    return {
+      error: 'Session not found',
+    };
   const functions: Record<string, (session: ISession) => unknown> = {
     currentScene: getCurrentScene,
     sceneHistory: (session) => session.get('sceneHistory') || [],
     selectListData: getSelectListData,
     learnData: getOldLearnData,
   };
-  const res: Record<string, any> = Object.entries(functions).reduce((acc, [name, func]) => ({ ...acc, [name]: func(session) }), {});
-  console.log(JSON.stringify(res, null, 2));
+  const res: Record<string, any> = Object.entries(functions).reduce((acc, [name, func]) => ({ ...acc, [name]: func(session) ?? null }), {});
+  return res;
 };
 
 alice.on('response', (ctx) => {
-  // const c = ctx as IStageContext;
-  // console.log(2);
-  // getAllSessionData(c.session);
-  // console.log(JSON.stringify(ctx.data, null, 2));
+  const c = ctx as IStageContext;
+  if (!loggingIsEnable(c.session)) return;
+  saveLog(c.userId, getAllSessionData(c.session));
 });
 
 alice.registerScene(atLearn);
@@ -453,9 +469,7 @@ alice.registerScene(atFindMenu);
 alice.registerScene(atSelectList);
 
 app.post('/', async (req, res) => {
-  // console.log(req.body);
   const result = await alice.handleRequest(req.body);
-  // console.log(result);
   return res.send(result);
 });
 

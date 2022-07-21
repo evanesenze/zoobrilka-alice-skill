@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.comparePoem = exports.searchPoems = exports.savePoem = exports.poemIsExists = exports.getPoem = void 0;
+exports.cleanLog = exports.saveLog = exports.logsRef = exports.comparePoem = exports.searchPoems = exports.savePoem = exports.poemIsExists = exports.getPoem = void 0;
 // import 'dotenv/config';
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const string_comparison_1 = require("string-comparison");
@@ -24,6 +24,12 @@ const app = firebase_admin_1.default.initializeApp({
 });
 const base = app.database();
 const poemsRef = base.ref('poems');
+const logsRef = base.ref('logs');
+exports.logsRef = logsRef;
+const saveLog = (id, log) => __awaiter(void 0, void 0, void 0, function* () { return logsRef.child(id).push(log); });
+exports.saveLog = saveLog;
+const cleanLog = (id) => __awaiter(void 0, void 0, void 0, function* () { return logsRef.child(id).remove(); });
+exports.cleanLog = cleanLog;
 const getPoemSnapshot = (id) => __awaiter(void 0, void 0, void 0, function* () { return yield poemsRef.child(id).once('value'); });
 const getPoem = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const res = yield getPoemSnapshot(id);

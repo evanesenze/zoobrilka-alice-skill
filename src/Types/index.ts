@@ -1,6 +1,6 @@
 type PoemTextType = 'full' | 'block' | 'row';
 
-type SceneType = 'LEARN_SCENE' | 'FIND_MENU_SCENE' | 'SELECT_LIST_SCENE';
+type SceneType = 'LEARN_SCENE' | 'FIND_MENU_SCENE' | 'SELECT_LIST_SCENE' | 'MENU';
 
 // type FindProperty = 'title' | 'first_line' | 'author';
 

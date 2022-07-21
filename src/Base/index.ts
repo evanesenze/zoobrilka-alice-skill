@@ -12,6 +12,11 @@ const app = admin.initializeApp({
 const base = app.database();
 
 const poemsRef = base.ref('poems');
+const logsRef = base.ref('logs');
+
+const saveLog = async (id: string, log: unknown) => logsRef.child(id).push(log);
+
+const cleanLog = async (id: string) => logsRef.child(id).remove();
 
 const getPoemSnapshot = async (id: string) => await poemsRef.child(id).once('value');
 
@@ -96,4 +101,4 @@ const searchPoems = async (author?: IAuthor, title?: string) => {
 //   }
 // };
 
-export { getPoem, poemIsExists, savePoem, searchPoems, comparePoem };
+export { getPoem, poemIsExists, savePoem, searchPoems, comparePoem, logsRef, saveLog, cleanLog };

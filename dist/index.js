@@ -20,7 +20,10 @@ const exitHandler = [
     ['выйти', 'хватит', 'стоп', 'я устал', 'выход'],
     (ctx) => {
         ctx.enter('');
+        if (loggingIsEnable(ctx.session))
+            (0, Base_1.cleanLog)(ctx.userId);
         cleanSceneHistory(ctx.session);
+        deleteSelectListData(ctx.session);
         return yandex_dialogs_sdk_1.Reply.text('Хорошо, будет скучно - обращайтесь.', { end_session: true });
     },
 ];
@@ -50,24 +53,30 @@ const FIND_MENU_SCENE = 'FIND_MENU_SCENE';
 const SELECT_LIST_SCENE = 'SELECT_LIST_SCENE';
 const LEARN_SCENE = 'LEARN_SCENE';
 const sceneMessages = {
+    MENU: ['меню'],
     LEARN_SCENE: ['Начинаем учить'],
     FIND_MENU_SCENE: ['Назовите имя и фамилию автора или название стиха, чтобы начать поиск. Также можете взглянуть на рейтинг'],
     SELECT_LIST_SCENE: ['Выбери стих из списка\n Для перемещения скажите "Далее/Назад"\nДля перехода к поиску, скажите "Поиск"'],
 };
 const sceneHints = {
+    MENU: ['меню'],
     LEARN_SCENE: ['Учите, ничем не могу помочь'],
     FIND_MENU_SCENE: ['Назовите имя и фамилию автора или название стиха, чтобы начать поиск'],
     SELECT_LIST_SCENE: ['Для выбора стиха, назовите его номер\nДля перехода к поиску, скажите "Поиск"'],
 };
+const enableLogging = (session) => session.set('logging', true);
+const loggingIsEnable = (session) => session.has('logging');
 const getCurrentScene = (session) => {
+    var _a;
     const arr = (session.get('sceneHistory') || []);
-    return arr[arr.length - 1];
+    return (_a = arr[arr.length - 1]) !== null && _a !== void 0 ? _a : 'MENU';
 };
 const removeSceneHistory = (session) => {
+    var _a;
     const arr = (session.get('sceneHistory') || []);
     arr.pop();
     session.set('sceneHistory', arr);
-    return arr[arr.length - 1];
+    return (_a = arr[arr.length - 1]) !== null && _a !== void 0 ? _a : 'MENU';
 };
 const cleanSceneHistory = (session) => session.set('sceneHistory', []);
 const addSceneHistory = (session, newSceneName) => {
@@ -399,33 +408,38 @@ alice.command(/расскажи|умеешь|не/i, () => yandex_dialogs_sdk_1.
   Я могу помочь найти стихотворение, достаточно сказать “Найти”.
   Я могу помочь выучить стихотворение, достаточно сказать “Учить”.
   Так же по команде “Запомни” я запишу Ваше чтение.`));
+alice.command('лог', (ctx) => {
+    const c = ctx;
+    enableLogging(c.session);
+    return yandex_dialogs_sdk_1.Reply.text('Логирование влючено');
+});
 alice.command(...exitHandler);
 alice.any(wrongHandler);
 const getAllSessionData = (session) => {
     if (!session)
-        return;
+        return {
+            error: 'Session not found',
+        };
     const functions = {
         currentScene: getCurrentScene,
         sceneHistory: (session) => session.get('sceneHistory') || [],
         selectListData: getSelectListData,
         learnData: getOldLearnData,
     };
-    const res = Object.entries(functions).reduce((acc, [name, func]) => (Object.assign(Object.assign({}, acc), { [name]: func(session) })), {});
-    console.log(JSON.stringify(res, null, 2));
+    const res = Object.entries(functions).reduce((acc, [name, func]) => { var _a; return (Object.assign(Object.assign({}, acc), { [name]: (_a = func(session)) !== null && _a !== void 0 ? _a : null })); }, {});
+    return res;
 };
 alice.on('response', (ctx) => {
-    // const c = ctx as IStageContext;
-    // console.log(2);
-    // getAllSessionData(c.session);
-    // console.log(JSON.stringify(ctx.data, null, 2));
+    const c = ctx;
+    if (!loggingIsEnable(c.session))
+        return;
+    (0, Base_1.saveLog)(c.userId, getAllSessionData(c.session));
 });
 alice.registerScene(atLearn);
 alice.registerScene(atFindMenu);
 alice.registerScene(atSelectList);
 Api_1.app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(req.body);
     const result = yield alice.handleRequest(req.body);
-    // console.log(result);
     return res.send(result);
 }));
 console.log(1);
