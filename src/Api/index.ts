@@ -20,8 +20,8 @@ app.get('/api/poem/:id', async (req, res) => {
 });
 
 app.get('/api/search', async (req, res) => {
-  const { author, title } = req.query as { author?: string; title?: string };
-  const response = await searchPoems(author, title);
+  const { firstName, title, lastName } = req.query as { firstName?: string; title?: string; lastName?: string };
+  const response = await searchPoems({ firstName: firstName ?? '', lastName: lastName ?? '' }, title);
   return res.send({ response });
 });
 

@@ -198,20 +198,17 @@ const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
   }
 };
 
-const extractTitleAndAuthor = (message: string, entities?: IApiEntity[]): { title: string; author?: string } => {
-  let author: string | undefined;
+const extractTitleAndAuthor = (message: string, entities?: IApiEntity[]): { title: string; author?: IAuthor } => {
+  let author: IAuthor | undefined;
   let title = message;
-  const names = entities
-    ?.filter((item) => item.type === 'YANDEX.FIO')
-    .map((item) => item as IApiEntityYandexFioNew)
-    .filter((item) => !!item.value.first_name);
+  const names = entities?.filter((item) => item.type === 'YANDEX.FIO').map((item) => item as IApiEntityYandexFioNew);
   if (names?.length) {
     const namesCount = names.length - 1;
     const name = names[namesCount];
     if (names?.length) {
-      const first_name = `${name.value.first_name![0].toUpperCase()}${name.value.first_name!.slice(1).toLocaleLowerCase()}`;
-      const last_name = `${name.value.last_name?.[0].toUpperCase() ?? ''}${name.value.last_name?.slice(1).toLocaleLowerCase() ?? ''}`;
-      author = `${first_name} ${last_name}`.trim();
+      const firstName = `${name.value.first_name?.[0].toUpperCase() ?? ''}${name.value.first_name?.slice(1).toLocaleLowerCase() ?? ''}`;
+      const lastName = `${name.value.last_name?.[0].toUpperCase() ?? ''}${name.value.last_name?.slice(1).toLocaleLowerCase() ?? ''}`;
+      author = { firstName, lastName };
       const words = title.split(' ');
       words.splice(name.tokens.start, name.tokens.end - name.tokens.start);
       title = words.join(' ');
@@ -232,8 +229,10 @@ const confirmSelectPoem = (ctx: IStageContext, selectedPoem: IPoem, selectListDa
   }
   const text = getPoemText(newLearnData);
   saveSelectListData(ctx.session, { ...selectListData, selectedPoem });
-  return Reply.text(`Ты выбрал ${selectedPoem.author} - ${selectedPoem.title}\n\n${text}\nУчим его?`);
+  return Reply.text(`Ты выбрал ${getAuthorName(selectedPoem.author)} - ${selectedPoem.title}\n\n${text}\nУчим его?`);
 };
+
+const getAuthorName = (author?: IAuthor): string => `${author?.firstName ?? ''} ${author?.lastName ?? ''}`.trim();
 
 const atLearn = new Scene(LEARN_SCENE);
 
@@ -304,12 +303,13 @@ atFindMenu.any(async (ctx) => {
   const entities = ctx.nlu?.entities;
   console.log(entities);
   const { title, author } = extractTitleAndAuthor(ctx.message, entities);
+  const authorName = getAuthorName(author);
   const text = `Параметры поиска:
-Автор: ${author ?? 'Не задан'}
+Автор: ${authorName ?? 'Не задан'}
 Название: ${title}`;
   const items = await searchPoems(author, title);
   let tts = 'Ничего не смог найти';
-  const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${author} | ${title}`.substring(0, 128)));
+  const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${getAuthorName(author)} | ${title}`.substring(0, 128)));
   if (buttons.length) {
     tts = 'Вот что я нашел. Для выбора, назовите номер. Для выхода, скажите "Поиск"';
     saveSelectListData(ctx.session, { items });
@@ -331,7 +331,7 @@ atSelectList.command(/да|учим/, (ctx) => {
   const selectListData = getSelectListData(ctx.session);
   const { items, selectedPoem } = selectListData;
   if (!selectedPoem) {
-    const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${author} | ${title}`.substring(0, 128)));
+    const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${getAuthorName(author)} | ${title}`.substring(0, 128)));
     return Reply.text({ text: 'Выберите стих из списка', tts: 'Сначала выберите стих' }, { buttons });
   }
   const learnData = getNewLearnData(selectedPoem, 'row');
@@ -350,7 +350,7 @@ atSelectList.command(/да|учим/, (ctx) => {
 atSelectList.command(/нет|другой/, (ctx) => {
   const selectListData = getSelectListData(ctx.session);
   const { items } = selectListData;
-  const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${author} | ${title}`.substring(0, 128)));
+  const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${getAuthorName(author)} | ${title}`.substring(0, 128)));
   saveSelectListData(ctx.session, { items });
   return Reply.text('Выберите стих из списка', { buttons });
 });
@@ -379,7 +379,7 @@ atSelectList.any((ctx) => {
   const bestMatch = [...selectListData.items].sort((a, b) => comparePoem(a, b, title, author))[0];
   if (bestMatch) return confirmSelectPoem(ctx, bestMatch, selectListData);
   const tts = String(sample(sceneHints['SELECT_LIST_SCENE']));
-  const buttons = selectListData.items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${author} | ${title}`.substring(0, 128)));
+  const buttons = selectListData.items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${getAuthorName(author)} | ${title}`.substring(0, 128)));
   return Reply.text({ text: 'Выберите стих из списка:', tts }, { buttons });
 });
 
@@ -412,7 +412,7 @@ alice.command(/учить|продолжи/i, (ctx) => {
   c.enter(LEARN_SCENE);
   const { poem } = learnData;
   const poemText = getPoemText(learnData);
-  const text = `Продолжаем учить стих ${poem.author} - ${poem.title}
+  const text = `Продолжаем учить стих ${getAuthorName(poem.author)} - ${poem.title}
 Повторите:
 ${poemText}`;
   return Reply.text(text);

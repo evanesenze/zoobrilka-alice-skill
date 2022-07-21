@@ -28,23 +28,32 @@ const savePoem = async (poem: IPoem) => {
   poemsRef.child(String(poem.id)).update(poem);
 };
 
-const comparePoem = (a: IPoem, b: IPoem, title: string, author?: string): number => {
-  const poem1 = levenshtein.similarity(a.title, title) + levenshtein.similarity(a.author, author ?? '');
-  const poem2 = levenshtein.similarity(b.title, title) + levenshtein.similarity(b.author, author ?? '');
+const comparePoem = (a: IPoem, b: IPoem, title: string, author?: IAuthor): number => {
+  const poem1 = levenshtein.similarity(a.title, title) + levenshtein.similarity(a.author.firstName, author?.firstName ?? '') + levenshtein.similarity(a.author.lastName, author?.lastName ?? '');
+  const poem2 = levenshtein.similarity(b.title, title) + levenshtein.similarity(b.author.firstName, author?.firstName ?? '') + levenshtein.similarity(a.author.lastName, author?.lastName ?? '');
   return poem2 - poem1;
 };
 
-const searchPoems = async (author?: string, title?: string) => {
+const searchPoems = async (author?: IAuthor, title?: string) => {
   console.time('searchPoems');
   console.log(author);
   console.log(title);
   const arr: Promise<any>[] = [];
-  if (author)
+  if (author?.firstName)
     arr.push(
       poemsRef
-        .orderByChild('author')
-        .startAt(author)
-        .endAt(author + '\uf8ff')
+        .orderByChild('author/firstName')
+        .startAt(author.firstName)
+        .endAt(author.firstName + '\uf8ff')
+        .limitToFirst(5)
+        .once('value')
+    );
+  if (author?.lastName)
+    arr.push(
+      poemsRef
+        .orderByChild('author/lastName')
+        .startAt(author.lastName)
+        .endAt(author.lastName + '\uf8ff')
         .limitToFirst(5)
         .once('value')
     );
@@ -58,13 +67,33 @@ const searchPoems = async (author?: string, title?: string) => {
         .once('value')
     );
   let res = (await Promise.all(arr).then((values) => values.map((value) => Object.values(value.val() ?? {}) as IPoem[]))).reduce(
-    (acc, value) => [...acc, ...value.filter((value) => acc.filter((x) => x.author === value.author && x.title === value.title).length === 0)],
+    (acc, value) => [
+      ...acc,
+      ...value.filter((value) => acc.filter((x) => x.author.firstName === value.author.firstName && x.author.lastName === value.author.lastName && x.title === value.title).length === 0),
+    ],
     []
   );
-  res = res.sort((a, b) => comparePoem(a, b, title ?? '', author ?? '')).slice(0, 5);
+  res = res.sort((a, b) => comparePoem(a, b, title ?? '', author)).slice(0, 5);
   console.timeEnd('searchPoems');
   console.log(res.map((x) => `${x.author} - ${x.title}`));
   return res;
 };
+
+// const test = async () => {
+//   for (let i = 1; i < 48823; i++) {
+//     const poem = await getPoem(String(i));
+//     if (!poem) {
+//       console.log(`${i}.) not found`);
+//       continue;
+//     }
+//     const authorName = poem.author.split(' ');
+//     const author = {
+//       firstName: authorName[0],
+//       lastName: authorName[1],
+//     };
+//     savePoem({ ...poem, author });
+//     console.log(`${i}.) done`);
+//   }
+// };
 
 export { getPoem, poemIsExists, savePoem, searchPoems, comparePoem };

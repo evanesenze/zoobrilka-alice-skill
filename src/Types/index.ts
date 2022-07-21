@@ -4,8 +4,13 @@ type SceneType = 'LEARN_SCENE' | 'FIND_MENU_SCENE' | 'SELECT_LIST_SCENE';
 
 // type FindProperty = 'title' | 'first_line' | 'author';
 
+interface IAuthor {
+  firstName: string;
+  lastName: string;
+}
+
 interface IPoem {
-  author: string;
+  author: IAuthor;
   title: string;
   first_line: string;
   text: string;

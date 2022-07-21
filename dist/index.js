@@ -187,17 +187,17 @@ const goLearnNext = (ctx, learnData) => {
     }
 };
 const extractTitleAndAuthor = (message, entities) => {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     let author;
     let title = message;
-    const names = entities === null || entities === void 0 ? void 0 : entities.filter((item) => item.type === 'YANDEX.FIO').map((item) => item).filter((item) => !!item.value.first_name);
+    const names = entities === null || entities === void 0 ? void 0 : entities.filter((item) => item.type === 'YANDEX.FIO').map((item) => item);
     if (names === null || names === void 0 ? void 0 : names.length) {
         const namesCount = names.length - 1;
         const name = names[namesCount];
         if (names === null || names === void 0 ? void 0 : names.length) {
-            const first_name = `${name.value.first_name[0].toUpperCase()}${name.value.first_name.slice(1).toLocaleLowerCase()}`;
-            const last_name = `${(_b = (_a = name.value.last_name) === null || _a === void 0 ? void 0 : _a[0].toUpperCase()) !== null && _b !== void 0 ? _b : ''}${(_d = (_c = name.value.last_name) === null || _c === void 0 ? void 0 : _c.slice(1).toLocaleLowerCase()) !== null && _d !== void 0 ? _d : ''}`;
-            author = `${first_name} ${last_name}`.trim();
+            const firstName = `${(_b = (_a = name.value.first_name) === null || _a === void 0 ? void 0 : _a[0].toUpperCase()) !== null && _b !== void 0 ? _b : ''}${(_d = (_c = name.value.first_name) === null || _c === void 0 ? void 0 : _c.slice(1).toLocaleLowerCase()) !== null && _d !== void 0 ? _d : ''}`;
+            const lastName = `${(_f = (_e = name.value.last_name) === null || _e === void 0 ? void 0 : _e[0].toUpperCase()) !== null && _f !== void 0 ? _f : ''}${(_h = (_g = name.value.last_name) === null || _g === void 0 ? void 0 : _g.slice(1).toLocaleLowerCase()) !== null && _h !== void 0 ? _h : ''}`;
+            author = { firstName, lastName };
             const words = title.split(' ');
             words.splice(name.tokens.start, name.tokens.end - name.tokens.start);
             title = words.join(' ');
@@ -217,8 +217,9 @@ const confirmSelectPoem = (ctx, selectedPoem, selectListData) => {
     }
     const text = getPoemText(newLearnData);
     saveSelectListData(ctx.session, Object.assign(Object.assign({}, selectListData), { selectedPoem }));
-    return yandex_dialogs_sdk_1.Reply.text(`Ты выбрал ${selectedPoem.author} - ${selectedPoem.title}\n\n${text}\nУчим его?`);
+    return yandex_dialogs_sdk_1.Reply.text(`Ты выбрал ${getAuthorName(selectedPoem.author)} - ${selectedPoem.title}\n\n${text}\nУчим его?`);
 };
+const getAuthorName = (author) => { var _a, _b; return `${(_a = author === null || author === void 0 ? void 0 : author.firstName) !== null && _a !== void 0 ? _a : ''} ${(_b = author === null || author === void 0 ? void 0 : author.lastName) !== null && _b !== void 0 ? _b : ''}`.trim(); };
 const atLearn = new yandex_dialogs_sdk_1.Scene(LEARN_SCENE);
 atLearn.command(/дальше/, (ctx) => {
     const learnData = getOldLearnData(ctx.session);
@@ -284,12 +285,13 @@ atFindMenu.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const entities = (_a = ctx.nlu) === null || _a === void 0 ? void 0 : _a.entities;
     console.log(entities);
     const { title, author } = extractTitleAndAuthor(ctx.message, entities);
+    const authorName = getAuthorName(author);
     const text = `Параметры поиска:
-Автор: ${author !== null && author !== void 0 ? author : 'Не задан'}
+Автор: ${authorName !== null && authorName !== void 0 ? authorName : 'Не задан'}
 Название: ${title}`;
     const items = yield (0, Base_1.searchPoems)(author, title);
     let tts = 'Ничего не смог найти';
-    const buttons = items.map(({ title, author }, i) => yandex_dialogs_sdk_1.Markup.button(`${i + 1}). ${author} | ${title}`.substring(0, 128)));
+    const buttons = items.map(({ title, author }, i) => yandex_dialogs_sdk_1.Markup.button(`${i + 1}). ${getAuthorName(author)} | ${title}`.substring(0, 128)));
     if (buttons.length) {
         tts = 'Вот что я нашел. Для выбора, назовите номер. Для выхода, скажите "Поиск"';
         saveSelectListData(ctx.session, { items });
@@ -308,7 +310,7 @@ atSelectList.command(/да|учим/, (ctx) => {
     const selectListData = getSelectListData(ctx.session);
     const { items, selectedPoem } = selectListData;
     if (!selectedPoem) {
-        const buttons = items.map(({ title, author }, i) => yandex_dialogs_sdk_1.Markup.button(`${i + 1}). ${author} | ${title}`.substring(0, 128)));
+        const buttons = items.map(({ title, author }, i) => yandex_dialogs_sdk_1.Markup.button(`${i + 1}). ${getAuthorName(author)} | ${title}`.substring(0, 128)));
         return yandex_dialogs_sdk_1.Reply.text({ text: 'Выберите стих из списка', tts: 'Сначала выберите стих' }, { buttons });
     }
     const learnData = getNewLearnData(selectedPoem, 'row');
@@ -326,7 +328,7 @@ atSelectList.command(/да|учим/, (ctx) => {
 atSelectList.command(/нет|другой/, (ctx) => {
     const selectListData = getSelectListData(ctx.session);
     const { items } = selectListData;
-    const buttons = items.map(({ title, author }, i) => yandex_dialogs_sdk_1.Markup.button(`${i + 1}). ${author} | ${title}`.substring(0, 128)));
+    const buttons = items.map(({ title, author }, i) => yandex_dialogs_sdk_1.Markup.button(`${i + 1}). ${getAuthorName(author)} | ${title}`.substring(0, 128)));
     saveSelectListData(ctx.session, { items });
     return yandex_dialogs_sdk_1.Reply.text('Выберите стих из списка', { buttons });
 });
@@ -357,7 +359,7 @@ atSelectList.any((ctx) => {
     if (bestMatch)
         return confirmSelectPoem(ctx, bestMatch, selectListData);
     const tts = String((0, lodash_1.sample)(sceneHints['SELECT_LIST_SCENE']));
-    const buttons = selectListData.items.map(({ title, author }, i) => yandex_dialogs_sdk_1.Markup.button(`${i + 1}). ${author} | ${title}`.substring(0, 128)));
+    const buttons = selectListData.items.map(({ title, author }, i) => yandex_dialogs_sdk_1.Markup.button(`${i + 1}). ${getAuthorName(author)} | ${title}`.substring(0, 128)));
     return yandex_dialogs_sdk_1.Reply.text({ text: 'Выберите стих из списка:', tts }, { buttons });
 });
 alice.command('', () => {
@@ -387,7 +389,7 @@ alice.command(/учить|продолжи/i, (ctx) => {
     c.enter(LEARN_SCENE);
     const { poem } = learnData;
     const poemText = getPoemText(learnData);
-    const text = `Продолжаем учить стих ${poem.author} - ${poem.title}
+    const text = `Продолжаем учить стих ${getAuthorName(poem.author)} - ${poem.title}
 Повторите:
 ${poemText}`;
     return yandex_dialogs_sdk_1.Reply.text(text);

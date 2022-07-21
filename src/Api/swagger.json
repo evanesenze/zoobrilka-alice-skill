@@ -86,7 +86,7 @@
       "required": ["author", "title", "first_line", "text", "id"],
       "properties": {
         "id": { "type": "integer", "uniqueItems": true },
-        "author": { "type": "string" },
+        "author": { "type": "object", "properties": { "firstName": { "type": "string", "required": true }, "lastName": { "type": "string", "required": true } } },
         "title": { "type": "string" },
         "text": { "type": "string" },
         "first_line": { "type": "string" },

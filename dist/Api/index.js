@@ -54,8 +54,8 @@ app.get('/api/poem/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
 }));
 app.get('/api/search', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { author, title } = req.query;
-    const response = yield (0, Base_1.searchPoems)(author, title);
-    return res.send({ response });
+    // const response = await searchPoems(author, title);
+    // return res.send({ response });
 }));
 app.use('/swagger', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_json_1.default));
 app.listen(port, () => console.log('express running on port ' + port));
