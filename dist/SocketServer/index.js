@@ -9,10 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ioServer = void 0;
+exports.createIoServer = void 0;
 const socket_io_1 = require("socket.io");
 const Base_1 = require("../Base");
-const __1 = require("..");
 const onConnection = (socket) => {
     console.log('Client connected...');
     socket.on('users:get', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -38,6 +37,9 @@ const onConnection = (socket) => {
         console.log('Client disconnect...');
     });
 };
-const ioServer = new socket_io_1.Server(__1.server, { cors: {} });
-exports.ioServer = ioServer;
-ioServer.on('connection', onConnection);
+const createIoServer = (server) => {
+    const ioServer = new socket_io_1.Server(server, { cors: {} });
+    ioServer.on('connection', onConnection);
+    return ioServer;
+};
+exports.createIoServer = createIoServer;

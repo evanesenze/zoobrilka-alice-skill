@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { database } from 'firebase-admin';
+import http from 'http';
 import { logsRef } from '../Base';
-import { server } from '..';
 
 const onConnection = (socket: Socket) => {
   console.log('Client connected...');
@@ -28,9 +28,10 @@ const onConnection = (socket: Socket) => {
     console.log('Client disconnect...');
   });
 };
+const createIoServer = (server: http.Server) => {
+  const ioServer = new Server(server, { cors: {} });
+  ioServer.on('connection', onConnection);
+  return ioServer;
+};
 
-const ioServer = new Server(server, { cors: {} });
-
-ioServer.on('connection', onConnection);
-
-export { ioServer };
+export { createIoServer };
