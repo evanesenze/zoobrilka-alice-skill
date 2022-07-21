@@ -31,6 +31,8 @@ app.get('/api/search', async (req, res) => {
   return res.send({ response });
 });
 
+app.get('/wakeup', (req, res) => res.send('OK'));
+
 app.use('/swagger', serve, setup(swaggerDoc));
 
 app.post('/', async (req, res) => {

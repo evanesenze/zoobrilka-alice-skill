@@ -63,6 +63,7 @@ app.get('/api/search', (req, res) => __awaiter(void 0, void 0, void 0, function*
     const response = yield (0, Base_1.searchPoems)({ firstName: firstName !== null && firstName !== void 0 ? firstName : '', lastName: lastName !== null && lastName !== void 0 ? lastName : '' }, title);
     return res.send({ response });
 }));
+app.get('/wakeup', (req, res) => res.send('OK'));
 app.use('/swagger', swagger_ui_express_1.serve, (0, swagger_ui_express_1.setup)(swagger_json_1.default));
 app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield Alice_1.alice.handleRequest(req.body);
