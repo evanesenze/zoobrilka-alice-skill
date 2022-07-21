@@ -44,6 +44,9 @@ atLearn.command(/продолжить/gi, (ctx) => {
         return yandex_dialogs_sdk_1.Reply.text('Ты не допустили ни одной ошибки. Продолжай учить:\n\n' + poemText);
     return (0, extras_1.goLearnNext)(ctx, Object.assign(Object.assign({}, learnData), { errorCount: 0 }));
 });
+atLearn.command(...extras_1.exitHandler);
+atLearn.command(...extras_1.backHandler);
+atLearn.command(...extras_1.helpHandler);
 atLearn.any((ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     const poemText = (0, extras_1.getPoemText)(learnData);
@@ -59,5 +62,3 @@ atLearn.any((ctx) => {
         return yandex_dialogs_sdk_1.Reply.text({ text: `${matchText} Повтори еще раз\n\n${poemText}`, tts: `${matchText} Скажи "Продолжить", чтобы учить дальше или повтори текст: \n\n${poemText}` });
     }
 });
-atLearn.command(...extras_1.exitHandler);
-atLearn.command(...extras_1.backHandler);

@@ -1,6 +1,7 @@
 import { CommandCallback, ISession, IStageContext, Reply } from 'yandex-dialogs-sdk';
 import { IApiEntity, IApiEntityYandexFio } from 'yandex-dialogs-sdk/dist/api/nlu';
 import { CommandDeclaration } from 'yandex-dialogs-sdk/dist/command/command';
+import { TextReplyDeclaration } from 'yandex-dialogs-sdk/dist/reply/textReplyBuilder';
 import { cleanLog } from '../Base';
 import { sample } from 'lodash';
 
@@ -15,6 +16,13 @@ const ROWS_COUNT = 2;
 const FIND_MENU_SCENE: SceneType = 'FIND_MENU_SCENE';
 const SELECT_LIST_SCENE: SceneType = 'SELECT_LIST_SCENE';
 const LEARN_SCENE: SceneType = 'LEARN_SCENE';
+
+const sceneNames: Record<SceneType, string> = {
+  MENU: 'Меню',
+  FIND_MENU_SCENE: 'Поиске',
+  SELECT_LIST_SCENE: 'Выборе стиха',
+  LEARN_SCENE: 'Зубрилке',
+};
 
 const exitHandler: IHandlerType = [
   ['выйти', 'хватит', 'стоп', 'я устал', 'выход'],
@@ -38,18 +46,31 @@ const backHandler: IHandlerType = [
   },
 ];
 
+const helpHandler: IHandlerType = [
+  ['помоги', 'помощь'],
+  (ctx) => {
+    const scene = getCurrentScene(ctx.session);
+    const sceneName = sceneNames[scene];
+    const message = String(sample(sceneHints[scene]));
+    return Reply.text(`Ты находишься в ${sceneName}
+${message}`);
+  },
+];
+
 const sceneMessages: Record<SceneType, string[]> = {
-  MENU: ['меню'],
-  LEARN_SCENE: ['Начинаем учить'],
+  MENU: ['Меню текст'],
+  LEARN_SCENE: ['Повторяй строчки стиха, чтобы двигаться дальше.'],
   FIND_MENU_SCENE: ['Назови имя/фамилию автора или название стиха, чтобы начать поиск.'],
-  SELECT_LIST_SCENE: ['Выбери стих из списка\n Для перемещения скажите "Далее/Назад"\nДля перехода к поиску, скажите "Поиск"'],
+  SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску"],
 };
 
-const sceneHints: Record<SceneType, string[]> = {
-  MENU: ['меню'],
-  LEARN_SCENE: ['Учите, ничем не могу помочь'],
-  FIND_MENU_SCENE: ['Назовите имя и фамилию автора или название стиха, чтобы начать поиск'],
-  SELECT_LIST_SCENE: ['Для выбора стиха, назовите его номер\nДля перехода к поиску, скажите "Поиск"'],
+const sceneHints: Record<SceneType, TextReplyDeclaration[]> = {
+  MENU: [
+    "Скажи 'Учить', чтобы продолжить учить.\nСкажи 'Найти', чтобы начать поиск.Скажи 'Стих дня', чтобы узнать стих дня.\nСкажи 'Помоги' в любом месте, чтобы получить помощь.\nСкажи 'Я устал', для завершения чата",
+  ],
+  LEARN_SCENE: ["Повторяй строчки стиха, чтобы двигаться дальше.\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
+  FIND_MENU_SCENE: ["Назови имя/фамилию автора или название стиха, чтобы начать поиск.\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
+  SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску\nСкажи 'Я устал', для завершения чата"],
 };
 
 const enableLogging = (session: ISession) => session.set('logging', true);
@@ -250,6 +271,7 @@ export {
   backHandler,
   sceneHints,
   sceneMessages,
+  helpHandler,
   extractTitleAndAuthor,
   confirmSelectPoem,
   getAuthorName,

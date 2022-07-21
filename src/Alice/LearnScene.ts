@@ -1,4 +1,4 @@
-import { LEARN_SCENE, backHandler, exitHandler, getNewLearnData,getOldLearnData, getPoemText, goLearnNext, saveLearnData } from './extras';
+import { LEARN_SCENE, backHandler, exitHandler, getNewLearnData, getOldLearnData, getPoemText, goLearnNext, helpHandler, saveLearnData } from './extras';
 import { Reply, Scene } from 'yandex-dialogs-sdk';
 import { levenshtein } from 'string-comparison';
 
@@ -45,6 +45,12 @@ atLearn.command(/продолжить/gi, (ctx) => {
   return goLearnNext(ctx, { ...learnData, errorCount: 0 });
 });
 
+atLearn.command(...exitHandler);
+
+atLearn.command(...backHandler);
+
+atLearn.command(...helpHandler);
+
 atLearn.any((ctx) => {
   const learnData = getOldLearnData(ctx.session);
   const poemText = getPoemText(learnData);
@@ -59,8 +65,5 @@ atLearn.any((ctx) => {
     return Reply.text({ text: `${matchText} Повтори еще раз\n\n${poemText}`, tts: `${matchText} Скажи "Продолжить", чтобы учить дальше или повтори текст: \n\n${poemText}` });
   }
 });
-
-atLearn.command(...exitHandler);
-atLearn.command(...backHandler);
 
 export { atLearn };

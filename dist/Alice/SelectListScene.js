@@ -41,6 +41,7 @@ atSelectList.command(/нет|другой/gi, (ctx) => {
 });
 atSelectList.command(...extras_1.exitHandler);
 atSelectList.command(...extras_1.backHandler);
+atSelectList.command(...extras_1.helpHandler);
 atSelectList.any((ctx) => {
     var _a, _b;
     const entities = (_a = ctx.nlu) === null || _a === void 0 ? void 0 : _a.entities;

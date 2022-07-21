@@ -52,10 +52,7 @@ ${poemText}`;
     return yandex_dialogs_sdk_1.Reply.text(text);
 });
 alice.command(/запомни|запиши|запись|записать|запомнить/gi, () => yandex_dialogs_sdk_1.Reply.text('К сожалению, я не умею записывать ваш голос. Перейди на сайт', { buttons: [yandex_dialogs_sdk_1.Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://www.google.com' })] }));
-alice.command(/расскажи|умеешь|не/gi, () => yandex_dialogs_sdk_1.Reply.text(`Что ж, пора рассказать, что я умею.
-Скажи "Найти", и я начну поиск.
-Скажи "Учить", и мы продолжим учить стих.
-Скажи "Запомни", и я запишу твое чтение.`));
+alice.command(/расскажи|умеешь|не/gi, (ctx) => __awaiter(void 0, void 0, void 0, function* () { return extras_1.helpHandler[1](ctx); }));
 alice.command(/стих дня/gi, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const c = ctx;
     const poem = yield (0, Base_1.getTodayPoem)();
@@ -69,6 +66,7 @@ alice.command('лог', (ctx) => {
     return yandex_dialogs_sdk_1.Reply.text('Логирование влючено\nТвой ид:\n' + c.userId);
 });
 alice.command(...extras_1.exitHandler);
+alice.command(...extras_1.helpHandler);
 alice.any((ctx) => {
     const c = ctx;
     const currentScene = (0, extras_1.getCurrentScene)(c.session);

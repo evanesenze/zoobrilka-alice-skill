@@ -1,4 +1,4 @@
-import { FIND_MENU_SCENE, SELECT_LIST_SCENE, backHandler, exitHandler, extractTitleAndAuthor, getAuthorName, saveSelectListData } from './extras';
+import { FIND_MENU_SCENE, SELECT_LIST_SCENE, backHandler, exitHandler, extractTitleAndAuthor, getAuthorName, helpHandler, saveSelectListData } from './extras';
 import { Markup, Reply, Scene } from 'yandex-dialogs-sdk';
 import { searchPoems } from '../Base';
 
@@ -6,8 +6,10 @@ const atFindMenu = new Scene(FIND_MENU_SCENE);
 atFindMenu.command(/рейтинг/gi, () => Reply.text('Рейтинг стихов можешь посмотреть на сайте', { buttons: [Markup.button({ url: 'https://www.google.com', title: 'Перейти на сайт' })] }));
 
 atFindMenu.command(...exitHandler);
-//
+
 atFindMenu.command(...backHandler);
+
+atFindMenu.command(...helpHandler);
 
 atFindMenu.any(async (ctx) => {
   const entities = ctx.nlu?.entities;

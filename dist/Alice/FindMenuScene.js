@@ -17,8 +17,8 @@ const atFindMenu = new yandex_dialogs_sdk_1.Scene(extras_1.FIND_MENU_SCENE);
 exports.atFindMenu = atFindMenu;
 atFindMenu.command(/рейтинг/gi, () => yandex_dialogs_sdk_1.Reply.text('Рейтинг стихов можешь посмотреть на сайте', { buttons: [yandex_dialogs_sdk_1.Markup.button({ url: 'https://www.google.com', title: 'Перейти на сайт' })] }));
 atFindMenu.command(...extras_1.exitHandler);
-//
 atFindMenu.command(...extras_1.backHandler);
+atFindMenu.command(...extras_1.helpHandler);
 atFindMenu.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const entities = (_a = ctx.nlu) === null || _a === void 0 ? void 0 : _a.entities;

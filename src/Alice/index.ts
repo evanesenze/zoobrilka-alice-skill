@@ -11,6 +11,7 @@ import {
   getCurrentScene,
   getOldLearnData,
   getPoemText,
+  helpHandler,
   loggingIsEnable,
   sceneHints,
   sceneMessages,
@@ -66,12 +67,7 @@ alice.command(/запомни|запиши|запись|записать|зап�
   Reply.text('К сожалению, я не умею записывать ваш голос. Перейди на сайт', { buttons: [Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://www.google.com' })] })
 );
 
-alice.command(/расскажи|умеешь|не/gi, () =>
-  Reply.text(`Что ж, пора рассказать, что я умею.
-Скажи "Найти", и я начну поиск.
-Скажи "Учить", и мы продолжим учить стих.
-Скажи "Запомни", и я запишу твое чтение.`)
-);
+alice.command(/расскажи|умеешь|не/gi, async (ctx) => helpHandler[1](ctx as IStageContext));
 
 alice.command(/стих дня/gi, async (ctx) => {
   const c = ctx as IStageContext;
@@ -87,6 +83,8 @@ alice.command('лог', (ctx) => {
 });
 
 alice.command(...(exitHandler as [declaration: CommandDeclaration<IContext>, callback: CommandCallback<IContext>]));
+
+alice.command(...(helpHandler as [declaration: CommandDeclaration<IContext>, callback: CommandCallback<IContext>]));
 
 alice.any((ctx) => {
   const c = ctx as IStageContext;

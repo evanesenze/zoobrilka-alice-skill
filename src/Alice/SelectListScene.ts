@@ -12,6 +12,7 @@ import {
   getNewLearnData,
   getPoemText,
   getSelectListData,
+  helpHandler,
   saveLearnData,
   saveSelectListData,
   sceneHints,
@@ -59,7 +60,10 @@ atSelectList.command(/нет|другой/gi, (ctx) => {
 });
 
 atSelectList.command(...exitHandler);
+
 atSelectList.command(...backHandler);
+
+atSelectList.command(...helpHandler);
 
 atSelectList.any((ctx) => {
   const entities = ctx.nlu?.entities;
