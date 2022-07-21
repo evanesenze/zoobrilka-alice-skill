@@ -10,6 +10,7 @@ exports.atSelectList = atSelectList;
 atSelectList.command(/поиск/gi, (ctx) => {
     (0, extras_1.deleteSelectListData)(ctx.session);
     const text = String((0, lodash_1.sample)(extras_1.sceneMessages['FIND_MENU_SCENE']));
+    (0, extras_1.removeSceneHistory)(ctx.session);
     ctx.enter(extras_1.FIND_MENU_SCENE); // !!
     return yandex_dialogs_sdk_1.Reply.text(text);
 });

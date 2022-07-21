@@ -1,4 +1,4 @@
-import { FIND_MENU_SCENE, SELECT_LIST_SCENE, backHandler, exitHandler, extractTitleAndAuthor, getAuthorName, helpHandler, saveSelectListData } from './extras';
+import { FIND_MENU_SCENE, SELECT_LIST_SCENE, addSceneHistory, backHandler, exitHandler, extractTitleAndAuthor, getAuthorName, helpHandler, saveSelectListData } from './extras';
 import { Markup, Reply, Scene } from 'yandex-dialogs-sdk';
 import { searchPoems } from '../Base';
 
@@ -23,6 +23,7 @@ atFindMenu.any(async (ctx) => {
   const buttons = items.map(({ title, author }, i) => Markup.button(`${i + 1}). ${getAuthorName(author)} | ${title}`.substring(0, 128)));
   if (buttons.length) {
     tts = 'Вот что я нашел. Для выбора, скажи номер или название. Или скажи "Поиск", чтобы вернуться к поиску.';
+    addSceneHistory(ctx.session, SELECT_LIST_SCENE);
     saveSelectListData(ctx.session, { items });
     ctx.enter(SELECT_LIST_SCENE);
   }

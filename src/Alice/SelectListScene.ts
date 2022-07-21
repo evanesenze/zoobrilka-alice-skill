@@ -13,6 +13,7 @@ import {
   getPoemText,
   getSelectListData,
   helpHandler,
+  removeSceneHistory,
   saveLearnData,
   saveSelectListData,
   sceneHints,
@@ -27,6 +28,7 @@ const atSelectList = new Scene(SELECT_LIST_SCENE);
 atSelectList.command(/поиск/gi, (ctx) => {
   deleteSelectListData(ctx.session);
   const text = String(sample(sceneMessages['FIND_MENU_SCENE']));
+  removeSceneHistory(ctx.session);
   ctx.enter(FIND_MENU_SCENE); // !!
   return Reply.text(text);
 });

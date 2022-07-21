@@ -32,6 +32,7 @@ atFindMenu.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const buttons = items.map(({ title, author }, i) => yandex_dialogs_sdk_1.Markup.button(`${i + 1}). ${(0, extras_1.getAuthorName)(author)} | ${title}`.substring(0, 128)));
     if (buttons.length) {
         tts = 'Вот что я нашел. Для выбора, скажи номер или название. Или скажи "Поиск", чтобы вернуться к поиску.';
+        (0, extras_1.addSceneHistory)(ctx.session, extras_1.SELECT_LIST_SCENE);
         (0, extras_1.saveSelectListData)(ctx.session, { items });
         ctx.enter(extras_1.SELECT_LIST_SCENE);
     }

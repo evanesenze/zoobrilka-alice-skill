@@ -51,7 +51,7 @@ alice.command(/учить|продолжи/gi, (ctx) => {
   if (!learnData) {
     addSceneHistory(c.session, FIND_MENU_SCENE);
     c.enter(FIND_MENU_SCENE);
-    return Reply.text('Ты ещё не начал учить стихотворение с "Зубрилкой". Назови имя/фамилию автора или название стиха, чтобы начать поиск');
+    return Reply.text('Ты ещё не начал учить стихотворение с "Зубрилкой".\nНазови имя/фамилию автора или название стиха, чтобы начать поиск');
   }
   addSceneHistory(c.session, LEARN_SCENE);
   c.enter(LEARN_SCENE);

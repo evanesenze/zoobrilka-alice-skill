@@ -68,7 +68,7 @@ const sceneHints: Record<SceneType, TextReplyDeclaration[]> = {
   MENU: [
     "Скажи 'Учить', чтобы продолжить учить.\nСкажи 'Найти', чтобы начать поиск.Скажи 'Стих дня', чтобы узнать стих дня.\nСкажи 'Помоги' в любом месте, чтобы получить помощь.\nСкажи 'Я устал', для завершения чата",
   ],
-  LEARN_SCENE: ["Повторяй строчки стиха, чтобы двигаться дальше.\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
+  LEARN_SCENE: ["Повторяй строчки стиха, чтобы двигаться дальше.\nСкажи 'Продолжить', чтобы пропустить текущий шаг\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
   FIND_MENU_SCENE: ["Назови имя/фамилию автора или название стиха, чтобы начать поиск.\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
   SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску\nСкажи 'Я устал', для завершения чата"],
 };
@@ -187,7 +187,6 @@ const getNewLearnData = (poem: IPoem, textType: PoemTextType, currentBlockIndex 
     poemСomplited: false,
     textType,
     errorCount: 0,
-    canLearnNext: false,
     blocksCount,
     currentBlock: {
       index: currentBlockIndex,
@@ -288,4 +287,5 @@ export {
   getSelectListData,
   deleteSelectListData,
   saveSelectListData,
+  removeSceneHistory,
 };

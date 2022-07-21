@@ -27,14 +27,18 @@ atLearn.command(/дальше/gi, (ctx) => {
 atLearn.command(/повторить стих/gi, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   console.log('repeat poem');
-  const text = 'Повтори стих:\n\n' + getPoemText({ ...learnData, textType: 'full' });
+  const newLearnData: ILearnData = { ...learnData, textType: 'full' };
+  const text = 'Повтори стих:\n\n' + getPoemText(newLearnData);
+  saveLearnData(ctx.session, newLearnData);
   return Reply.text(text);
 });
 
 atLearn.command(/повторить блок/gi, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   console.log('repeat poem');
-  const text = 'Повтори блок:\n\n' + getPoemText({ ...learnData, textType: 'block' });
+  const newLearnData: ILearnData = { ...learnData, textType: 'block' };
+  const text = 'Повтори блок:\n\n' + getPoemText(newLearnData);
+  saveLearnData(ctx.session, newLearnData);
   return Reply.text(text);
 });
 

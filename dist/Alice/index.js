@@ -40,7 +40,7 @@ alice.command(/учить|продолжи/gi, (ctx) => {
     if (!learnData) {
         (0, extras_1.addSceneHistory)(c.session, extras_1.FIND_MENU_SCENE);
         c.enter(extras_1.FIND_MENU_SCENE);
-        return yandex_dialogs_sdk_1.Reply.text('Ты ещё не начал учить стихотворение с "Зубрилкой". Назови имя/фамилию автора или название стиха, чтобы начать поиск');
+        return yandex_dialogs_sdk_1.Reply.text('Ты ещё не начал учить стихотворение с "Зубрилкой".\nНазови имя/фамилию автора или название стиха, чтобы начать поиск');
     }
     (0, extras_1.addSceneHistory)(c.session, extras_1.LEARN_SCENE);
     c.enter(extras_1.LEARN_SCENE);

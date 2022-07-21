@@ -24,7 +24,6 @@ interface ILearnData {
   textType: PoemTextType;
   blocksData: string[][];
   errorCount: number;
-  canLearnNext: boolean;
   blocksCount: number;
   currentBlock: IBlockInfo;
   currentRow: IRowInfo;

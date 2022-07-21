@@ -28,13 +28,17 @@ atLearn.command(/дальше/gi, (ctx) => {
 atLearn.command(/повторить стих/gi, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     console.log('repeat poem');
-    const text = 'Повтори стих:\n\n' + (0, extras_1.getPoemText)(Object.assign(Object.assign({}, learnData), { textType: 'full' }));
+    const newLearnData = Object.assign(Object.assign({}, learnData), { textType: 'full' });
+    const text = 'Повтори стих:\n\n' + (0, extras_1.getPoemText)(newLearnData);
+    (0, extras_1.saveLearnData)(ctx.session, newLearnData);
     return yandex_dialogs_sdk_1.Reply.text(text);
 });
 atLearn.command(/повторить блок/gi, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     console.log('repeat poem');
-    const text = 'Повтори блок:\n\n' + (0, extras_1.getPoemText)(Object.assign(Object.assign({}, learnData), { textType: 'block' }));
+    const newLearnData = Object.assign(Object.assign({}, learnData), { textType: 'block' });
+    const text = 'Повтори блок:\n\n' + (0, extras_1.getPoemText)(newLearnData);
+    (0, extras_1.saveLearnData)(ctx.session, newLearnData);
     return yandex_dialogs_sdk_1.Reply.text(text);
 });
 atLearn.command(/продолжить/gi, (ctx) => {

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.saveSelectListData = exports.deleteSelectListData = exports.getSelectListData = exports.goLearnNext = exports.saveLearnData = exports.getNewLearnData = exports.getOldLearnData = exports.loggingIsEnable = exports.getCurrentScene = exports.getAllSessionData = exports.enableLogging = exports.getPoemText = exports.addSceneHistory = exports.getAuthorName = exports.confirmSelectPoem = exports.extractTitleAndAuthor = exports.helpHandler = exports.sceneMessages = exports.sceneHints = exports.backHandler = exports.exitHandler = exports.LEARN_SCENE = exports.SELECT_LIST_SCENE = exports.FIND_MENU_SCENE = void 0;
+exports.removeSceneHistory = exports.saveSelectListData = exports.deleteSelectListData = exports.getSelectListData = exports.goLearnNext = exports.saveLearnData = exports.getNewLearnData = exports.getOldLearnData = exports.loggingIsEnable = exports.getCurrentScene = exports.getAllSessionData = exports.enableLogging = exports.getPoemText = exports.addSceneHistory = exports.getAuthorName = exports.confirmSelectPoem = exports.extractTitleAndAuthor = exports.helpHandler = exports.sceneMessages = exports.sceneHints = exports.backHandler = exports.exitHandler = exports.LEARN_SCENE = exports.SELECT_LIST_SCENE = exports.FIND_MENU_SCENE = void 0;
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
 const Base_1 = require("../Base");
 const lodash_1 = require("lodash");
@@ -62,7 +62,7 @@ const sceneHints = {
     MENU: [
         "Скажи 'Учить', чтобы продолжить учить.\nСкажи 'Найти', чтобы начать поиск.Скажи 'Стих дня', чтобы узнать стих дня.\nСкажи 'Помоги' в любом месте, чтобы получить помощь.\nСкажи 'Я устал', для завершения чата",
     ],
-    LEARN_SCENE: ["Повторяй строчки стиха, чтобы двигаться дальше.\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
+    LEARN_SCENE: ["Повторяй строчки стиха, чтобы двигаться дальше.\nСкажи 'Продолжить', чтобы пропустить текущий шаг\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
     FIND_MENU_SCENE: ["Назови имя/фамилию автора или название стиха, чтобы начать поиск.\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
     SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску\nСкажи 'Я устал', для завершения чата"],
 };
@@ -84,6 +84,7 @@ const removeSceneHistory = (session) => {
     session.set('sceneHistory', arr);
     return (_a = arr[arr.length - 1]) !== null && _a !== void 0 ? _a : 'MENU';
 };
+exports.removeSceneHistory = removeSceneHistory;
 const cleanSceneHistory = (session) => session.set('sceneHistory', []);
 const addSceneHistory = (session, newSceneName) => {
     const arr = (session.get('sceneHistory') || []);
@@ -184,7 +185,6 @@ const getNewLearnData = (poem, textType, currentBlockIndex = 0, currentRowIndex 
         poemСomplited: false,
         textType,
         errorCount: 0,
-        canLearnNext: false,
         blocksCount,
         currentBlock: {
             index: currentBlockIndex,
