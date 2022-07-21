@@ -34,13 +34,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.app = void 0;
 const express_1 = __importStar(require("express"));
 const Base_1 = require("../Base");
-const socket_io_1 = __importDefault(require("socket.io"));
+const swagger_ui_express_1 = require("swagger-ui-express");
+const Alice_1 = require("../Alice");
 const cors_1 = __importDefault(require("cors"));
-const http_1 = __importDefault(require("http"));
-// import https from 'https';
-const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_json_1 = __importDefault(require("./swagger.json"));
-const port = Number(process.env.PORT) || 3001;
 const app = (0, express_1.default)();
 exports.app = app;
 app.use((0, express_1.json)());
@@ -55,40 +52,19 @@ app.get('/api/poem/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
         return res.status(404).send({ error: { message: 'Poem not found' } });
     return res.send({ response: poem });
 }));
+app.get('/api/poem/today', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const poem = yield (0, Base_1.getTodayPoem)();
+    if (!poem)
+        return res.status(404).send({ error: { message: 'Today poem not found' } });
+    return res.send({ response: poem });
+}));
 app.get('/api/search', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { firstName, title, lastName } = req.query;
     const response = yield (0, Base_1.searchPoems)({ firstName: firstName !== null && firstName !== void 0 ? firstName : '', lastName: lastName !== null && lastName !== void 0 ? lastName : '' }, title);
     return res.send({ response });
 }));
-app.use('/swagger', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_json_1.default));
-const onConnection = (socket) => {
-    console.log('Client connected...');
-    // let baseRef: database.Reference | undefined = undefined;
-    socket.on('users:get', () => __awaiter(void 0, void 0, void 0, function* () {
-        const users = (yield Base_1.logsRef.once('value')).toJSON();
-        if (users)
-            return socket.emit('users', Object.keys(users));
-        return socket.emit('users', []);
-    }));
-    socket.on('user:set', (userId) => {
-        if (socket.data.baseRef)
-            socket.data.baseRef.off();
-        console.log(userId);
-        const base = Base_1.logsRef.child(userId).limitToLast(2);
-        base.on('child_added', (data) => {
-            console.log('base edit');
-            socket.emit('logs:update', data.val());
-        });
-        socket.data.baseRef = base;
-    });
-    socket.on('disconnect', () => {
-        if (socket.data.baseRef)
-            socket.data.baseRef.off();
-        console.log('Client disconnect...');
-    });
-};
-const server = http_1.default.createServer(app);
-// const httpsServer = https.createServer(app);
-const ioServer = new socket_io_1.default.Server(server, { cors: { origin: '*' } });
-ioServer.on('connection', onConnection);
-server.listen(port, () => console.log('server running on port ' + port));
+app.use('/swagger', swagger_ui_express_1.serve, (0, swagger_ui_express_1.setup)(swagger_json_1.default));
+app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield Alice_1.alice.handleRequest(req.body);
+    return res.send(result);
+}));

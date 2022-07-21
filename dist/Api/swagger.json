@@ -57,13 +57,44 @@
                 }
             }
         },
+        "/api/poem/today": {
+            "get": {
+                "tags": ["Poem"],
+                "summary": "Get today poem from database",
+                "responses": {
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "$ref": "#/definitions/Error"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "response": {
+                                    "$ref": "#/definitions/Poem"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/search/": {
             "get": {
                 "tags": ["Poem"],
                 "summary": "Search poems in database",
                 "parameters": [
-                    { "in": "query", "name": "author", "type": "string" },
-                    { "in": "query", "name": "title", "type": "string" }
+                    { "in": "query", "name": "title", "type": "string" },
+                    { "in": "query", "name": "firstName", "type": "string" },
+                    { "in": "query", "name": "lastName", "type": "string" }
                 ],
                 "responses": {
                     "200": {

@@ -14,6 +14,8 @@ const base = app.database();
 const poemsRef = base.ref('poems');
 const logsRef = base.ref('logs');
 
+let todayPoemId = '0';
+
 const saveLog = async (id: string, log: unknown) => logsRef.child(id).push(log);
 
 const cleanLog = async (id: string) => logsRef.child(id).remove();
@@ -26,6 +28,8 @@ const getPoem = async (id: string) => {
   if (data) return data as IPoem;
   return null;
 };
+
+const getTodayPoem = async () => getPoem(todayPoemId);
 
 const poemIsExists = async (id: string) => (await getPoemSnapshot(id)).exists();
 
@@ -84,6 +88,13 @@ const searchPoems = async (author?: IAuthor, title?: string) => {
   return res;
 };
 
+(async () => {
+  do {
+    todayPoemId = String(Math.ceil(Math.random() * 49000));
+    console.log('try ', todayPoemId);
+  } while (!(await poemIsExists(todayPoemId)));
+  console.log(todayPoemId);
+})();
 // const test = async () => {
 //   for (let i = 1; i < 48823; i++) {
 //     const poem = await getPoem(String(i));
@@ -101,4 +112,4 @@ const searchPoems = async (author?: IAuthor, title?: string) => {
 //   }
 // };
 
-export { getPoem, poemIsExists, savePoem, searchPoems, comparePoem, logsRef, saveLog, cleanLog };
+export { getPoem, poemIsExists, savePoem, searchPoems, comparePoem, logsRef, saveLog, cleanLog, getTodayPoem };

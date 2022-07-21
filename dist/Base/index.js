@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cleanLog = exports.saveLog = exports.logsRef = exports.comparePoem = exports.searchPoems = exports.savePoem = exports.poemIsExists = exports.getPoem = void 0;
+exports.getTodayPoem = exports.cleanLog = exports.saveLog = exports.logsRef = exports.comparePoem = exports.searchPoems = exports.savePoem = exports.poemIsExists = exports.getPoem = void 0;
 // import 'dotenv/config';
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const string_comparison_1 = require("string-comparison");
@@ -26,6 +26,7 @@ const base = app.database();
 const poemsRef = base.ref('poems');
 const logsRef = base.ref('logs');
 exports.logsRef = logsRef;
+let todayPoemId = '0';
 const saveLog = (id, log) => __awaiter(void 0, void 0, void 0, function* () { return logsRef.child(id).push(log); });
 exports.saveLog = saveLog;
 const cleanLog = (id) => __awaiter(void 0, void 0, void 0, function* () { return logsRef.child(id).remove(); });
@@ -39,6 +40,8 @@ const getPoem = (id) => __awaiter(void 0, void 0, void 0, function* () {
     return null;
 });
 exports.getPoem = getPoem;
+const getTodayPoem = () => __awaiter(void 0, void 0, void 0, function* () { return getPoem(todayPoemId); });
+exports.getTodayPoem = getTodayPoem;
 const poemIsExists = (id) => __awaiter(void 0, void 0, void 0, function* () { return (yield getPoemSnapshot(id)).exists(); });
 exports.poemIsExists = poemIsExists;
 const savePoem = (poem) => __awaiter(void 0, void 0, void 0, function* () {
@@ -88,3 +91,10 @@ const searchPoems = (author, title) => __awaiter(void 0, void 0, void 0, functio
     return res;
 });
 exports.searchPoems = searchPoems;
+(() => __awaiter(void 0, void 0, void 0, function* () {
+    do {
+        todayPoemId = String(Math.ceil(Math.random() * 49000));
+        console.log('try ', todayPoemId);
+    } while (!(yield poemIsExists(todayPoemId)));
+    console.log(todayPoemId);
+}))();
