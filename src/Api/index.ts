@@ -3,6 +3,7 @@ import { getPoem, getTodayPoem, searchPoems } from '../Base';
 import { serve, setup } from 'swagger-ui-express';
 import { alice } from '../Alice';
 import cors from 'cors';
+// import swaggerDevDoc from './swagger.dev.json';
 import swaggerDoc from './swagger.json';
 
 const app = express();
@@ -14,14 +15,10 @@ app.use(cors());
 app.get('/api/poem/:id', async (req, res) => {
   const { id } = req.params as { id?: string };
   if (!id) return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
-  const poem = await getPoem(id);
+  let poem: IPoem | null = null;
+  if (id === 'today') poem = await getTodayPoem();
+  else poem = await getPoem(id);
   if (!poem) return res.status(404).send({ error: { message: 'Poem not found' } });
-  return res.send({ response: poem });
-});
-
-app.get('/api/poem/today', async (req, res) => {
-  const poem = await getTodayPoem();
-  if (!poem) return res.status(404).send({ error: { message: 'Today poem not found' } });
   return res.send({ response: poem });
 });
 

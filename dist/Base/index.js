@@ -40,7 +40,10 @@ const getPoem = (id) => __awaiter(void 0, void 0, void 0, function* () {
     return null;
 });
 exports.getPoem = getPoem;
-const getTodayPoem = () => __awaiter(void 0, void 0, void 0, function* () { return getPoem(todayPoemId); });
+const getTodayPoem = () => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(todayPoemId);
+    return getPoem(todayPoemId);
+});
 exports.getTodayPoem = getTodayPoem;
 const poemIsExists = (id) => __awaiter(void 0, void 0, void 0, function* () { return (yield getPoemSnapshot(id)).exists(); });
 exports.poemIsExists = poemIsExists;

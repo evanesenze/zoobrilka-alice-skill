@@ -1,0 +1,141 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Zoobrilka REST API"
+  },
+  "host": "localhost:3001",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Poem"
+    }
+  ],
+  "schemes": ["https", "http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/api/poem/{id}": {
+      "get": {
+        "tags": ["Poem"],
+        "summary": "Get poem from database",
+        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string" }],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "response": {
+                  "$ref": "#/definitions/Poem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/poem/today": {
+      "get": {
+        "tags": ["Poem"],
+        "summary": "Get today poem from database",
+        "responses": {
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "response": {
+                  "$ref": "#/definitions/Poem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search/": {
+      "get": {
+        "tags": ["Poem"],
+        "summary": "Search poems in database",
+        "parameters": [
+          { "in": "query", "name": "title", "type": "string" },
+          { "in": "query", "name": "firstName", "type": "string" },
+          { "in": "query", "name": "lastName", "type": "string" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "response": {
+                  "$ref": "#/definitions/Poems"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Poem": {
+      "required": ["author", "title", "first_line", "text", "id"],
+      "properties": {
+        "id": { "type": "integer", "uniqueItems": true },
+        "author": { "type": "object", "properties": { "firstName": { "type": "string", "required": true }, "lastName": { "type": "string", "required": true } } },
+        "title": { "type": "string" },
+        "text": { "type": "string" },
+        "first_line": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "Poems": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Poem" },
+      "maxItems": 5
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

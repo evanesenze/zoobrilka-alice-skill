@@ -29,7 +29,10 @@ const getPoem = async (id: string) => {
   return null;
 };
 
-const getTodayPoem = async () => getPoem(todayPoemId);
+const getTodayPoem = async () => {
+  console.log(todayPoemId);
+  return getPoem(todayPoemId);
+};
 
 const poemIsExists = async (id: string) => (await getPoemSnapshot(id)).exists();
 

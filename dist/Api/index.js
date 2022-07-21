@@ -37,6 +37,7 @@ const Base_1 = require("../Base");
 const swagger_ui_express_1 = require("swagger-ui-express");
 const Alice_1 = require("../Alice");
 const cors_1 = __importDefault(require("cors"));
+// import swaggerDevDoc from './swagger.dev.json';
 const swagger_json_1 = __importDefault(require("./swagger.json"));
 const app = (0, express_1.default)();
 exports.app = app;
@@ -47,15 +48,13 @@ app.get('/api/poem/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
     const { id } = req.params;
     if (!id)
         return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
-    const poem = yield (0, Base_1.getPoem)(id);
+    let poem = null;
+    if (id === 'today')
+        poem = yield (0, Base_1.getTodayPoem)();
+    else
+        poem = yield (0, Base_1.getPoem)(id);
     if (!poem)
         return res.status(404).send({ error: { message: 'Poem not found' } });
-    return res.send({ response: poem });
-}));
-app.get('/api/poem/today', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const poem = yield (0, Base_1.getTodayPoem)();
-    if (!poem)
-        return res.status(404).send({ error: { message: 'Today poem not found' } });
     return res.send({ response: poem });
 }));
 app.get('/api/search', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
