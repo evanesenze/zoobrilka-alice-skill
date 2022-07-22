@@ -22,11 +22,14 @@ exports.alice = alice;
 alice.command('', () => {
     return yandex_dialogs_sdk_1.Reply.text(`Добро пожаловать в "Зубрилку".
 ${(0, lodash_1.sample)(['Здесь ты можешь выучить стихотворение.', 'Я помогу тебе выучить стихотворение.'])}
-Ты уже знаком с тем, что я умею?`);
+Скажи 'Учить', чтобы продолжить учить.
+Скажи 'Найти', чтобы начать поиск.`);
 });
-alice.command(/да|знаком/gi, () => yandex_dialogs_sdk_1.Reply.text(`Итак, что будем учить сегодня?
-Скажи "Продолжить", и мы продолжим учить стих.
-Скажи "Новое", и мы найдем новый стих.`));
+// alice.command(/да|знаком/gi, () =>
+//   Reply.text(`Итак, что будем учить сегодня?
+// Скажи "Продолжить", и мы продолжим учить стих.
+// Скажи "Новое", и мы найдем новый стих.`)
+// );
 alice.command(/новый|новое|другое|найти|поиск|искать/gi, (ctx) => {
     const c = ctx;
     (0, extras_1.addSceneHistory)(c.session, extras_1.FIND_MENU_SCENE);
@@ -58,7 +61,9 @@ alice.command(/стих дня/gi, (ctx) => __awaiter(void 0, void 0, void 0, fu
     const poem = yield (0, Base_1.getTodayPoem)();
     if (!poem)
         return yandex_dialogs_sdk_1.Reply.text('К сожалению, сегодня не день стихов');
-    return (0, extras_1.confirmSelectPoem)(c, poem, { items: [] }, true);
+    (0, extras_1.addSceneHistory)(c.session, extras_1.SELECT_LIST_SCENE);
+    c.enter(extras_1.SELECT_LIST_SCENE);
+    return (0, extras_1.confirmSelectPoem)(c, poem, { items: [poem] }, true);
 }));
 alice.command('лог', (ctx) => {
     const c = ctx;

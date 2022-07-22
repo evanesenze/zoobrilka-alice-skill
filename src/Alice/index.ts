@@ -2,6 +2,7 @@ import { Alice, CommandCallback, IContext, IStageContext, Markup, Reply } from '
 import {
   FIND_MENU_SCENE,
   LEARN_SCENE,
+  SELECT_LIST_SCENE,
   addSceneHistory,
   confirmSelectPoem,
   enableLogging,
@@ -28,14 +29,15 @@ const alice = new Alice();
 alice.command('', () => {
   return Reply.text(`Добро пожаловать в "Зубрилку".
 ${sample(['Здесь ты можешь выучить стихотворение.', 'Я помогу тебе выучить стихотворение.'])}
-Ты уже знаком с тем, что я умею?`);
+Скажи 'Учить', чтобы продолжить учить.
+Скажи 'Найти', чтобы начать поиск.`);
 });
 
-alice.command(/да|знаком/gi, () =>
-  Reply.text(`Итак, что будем учить сегодня?
-Скажи "Продолжить", и мы продолжим учить стих.
-Скажи "Новое", и мы найдем новый стих.`)
-);
+// alice.command(/да|знаком/gi, () =>
+//   Reply.text(`Итак, что будем учить сегодня?
+// Скажи "Продолжить", и мы продолжим учить стих.
+// Скажи "Новое", и мы найдем новый стих.`)
+// );
 
 alice.command(/новый|новое|другое|найти|поиск|искать/gi, (ctx) => {
   const c = ctx as IStageContext;
@@ -73,7 +75,9 @@ alice.command(/стих дня/gi, async (ctx) => {
   const c = ctx as IStageContext;
   const poem = await getTodayPoem();
   if (!poem) return Reply.text('К сожалению, сегодня не день стихов');
-  return confirmSelectPoem(c, poem, { items: [] }, true);
+  addSceneHistory(c.session, SELECT_LIST_SCENE);
+  c.enter(SELECT_LIST_SCENE);
+  return confirmSelectPoem(c, poem, { items: [poem] }, true);
 });
 
 alice.command('лог', (ctx) => {
