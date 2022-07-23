@@ -32,31 +32,106 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.app = void 0;
-const express_1 = __importStar(require("express"));
 const Base_1 = require("../Base");
+const express_1 = __importStar(require("express"));
 const swagger_ui_express_1 = require("swagger-ui-express");
 const Alice_1 = require("../Alice");
 const cors_1 = __importDefault(require("cors"));
-// import swaggerDevDoc from './swagger.dev.json';
+const express_fileupload_1 = __importDefault(require("express-fileupload"));
 const swagger_json_1 = __importDefault(require("./swagger.json"));
+// import swaggerDoc from './swagger.dev.json';
 const app = (0, express_1.default)();
 exports.app = app;
 app.use((0, express_1.json)());
 app.use((0, express_1.urlencoded)({ extended: false }));
 app.use((0, cors_1.default)());
+app.use((0, express_fileupload_1.default)({ limits: { files: 1 } }));
+// POEM
+// Возвращает стих
 app.get('/api/poem/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    if (!id)
-        return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
-    let poem = null;
-    if (id === 'today')
-        poem = yield (0, Base_1.getTodayPoem)();
-    else
-        poem = yield (0, Base_1.getPoem)(id);
+    const poem = id === 'today' ? yield (0, Base_1.getTodayPoem)() : (0, Base_1.getPoem)(id);
     if (!poem)
         return res.status(404).send({ error: { message: 'Poem not found' } });
     return res.send({ response: poem });
 }));
+// Возвращает записи стиха
+app.get('/api/poem/:id/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { offset } = req.query;
+    if (!id)
+        return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
+    const response = yield (0, Base_1.getPoemRecords)(id, offset !== null && offset !== void 0 ? offset : 0);
+    return res.send({ response });
+}));
+// Возвращает записи стихов
+app.get('/api/poems/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { offset } = req.query;
+    const response = yield (0, Base_1.getAllPoemRecords)(offset !== null && offset !== void 0 ? offset : 0);
+    return res.send({ response });
+}));
+// RECORD
+// Загрузка новой записи
+app.post('/api/record', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { files } = req;
+    const { userId, poemId } = req.body;
+    if (!(files === null || files === void 0 ? void 0 : files.record))
+        return res.status(400).send({ error: { message: 'Parameter "record" is empty' } });
+    if (!userId)
+        return res.status(400).send({ error: { message: 'Parameter "userId" is empty' } });
+    if (!poemId)
+        return res.status(400).send({ error: { message: 'Parameter "poemId" is empty' } });
+    const record = files.record;
+    const response = yield (0, Base_1.saveNewPoemRecord)(userId, poemId, record);
+    return res.send({ response });
+}));
+// Возвращает запись
+app.get('/api/record/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const poemRecord = yield (0, Base_1.getPoemRecord)(id);
+    if (!poemRecord)
+        return res.status(404).send({ error: { message: 'Poem record not found' } });
+    return res.send({ response: poemRecord });
+}));
+// Удаляет запись
+app.delete('/api/record/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { userId } = req.body;
+    if (!userId)
+        return res.status(400).send({ error: { message: 'Parameter "userId" is empty' } });
+    const ok = yield (0, Base_1.deletePoemRecord)(userId, id);
+    return res.sendStatus(ok ? 201 : 403);
+}));
+// Оценить запись
+app.post('/api/record/:id/vote', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { userId, vote } = req.body;
+    if (!id)
+        return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
+    if (!userId)
+        return res.status(400).send({ error: { message: 'Parameter "userId" is empty' } });
+    if (!vote)
+        return res.status(400).send({ error: { message: 'Parameter "vote" is empty' } });
+    const ok = yield (0, Base_1.setPoemRecordScore)(id, userId, Number(vote));
+    return res.sendStatus(ok ? 201 : 403);
+}));
+// USER
+// Возвращает топ записей юзера
+app.get('/api/user/:id/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { poemId } = req.query;
+    if (!id)
+        return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
+    const response = yield (0, Base_1.getUserRecords)(id, poemId);
+    return res.send({ response });
+}));
+// Возвращает топ юзеров и их записей
+app.get('/api/users/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { poemId, offset } = req.query;
+    const response = yield (0, Base_1.getAllUserRecords)(offset !== null && offset !== void 0 ? offset : 0, poemId);
+    return res.send({ response });
+}));
+// EXTRA
 app.get('/api/search', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { firstName, title, lastName } = req.query;
     const response = yield (0, Base_1.searchPoems)({ firstName: firstName !== null && firstName !== void 0 ? firstName : '', lastName: lastName !== null && lastName !== void 0 ? lastName : '' }, title);

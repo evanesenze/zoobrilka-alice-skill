@@ -1,7 +1,9 @@
 // import 'dotenv/config';
 import admin, { ServiceAccount } from 'firebase-admin';
+import { UploadedFile } from 'express-fileupload';
 import { levenshtein } from 'string-comparison';
 import serviceAccount from './serviceAccount.json';
+import { v4 } from 'uuid';
 
 const app = admin.initializeApp({
   credential: admin.credential.cert(serviceAccount as ServiceAccount),
@@ -10,10 +12,14 @@ const app = admin.initializeApp({
 });
 
 const base = app.database();
+const storage = app.storage().bucket('gs://zoobrilka-app.appspot.com');
 
 const poemsRef = base.ref('poems');
+const usersRef = base.ref('users');
+const recordsRef = base.ref('records');
 const logsRef = base.ref('logs');
 
+// eslint-disable-next-line prefer-const
 let todayPoemId = '0';
 
 const saveLog = async (id: string, log: unknown) => logsRef.child(id).push(log);
@@ -91,13 +97,141 @@ const searchPoems = async (author?: IAuthor, title?: string) => {
   return res;
 };
 
-(async () => {
-  do {
-    todayPoemId = String(Math.ceil(Math.random() * 49000));
-    console.log('try ', todayPoemId);
-  } while (!(await poemIsExists(todayPoemId)));
-  console.log(todayPoemId);
-})();
+const getPoemRecord = async (recordId: string): Promise<IPoemRecord | null> => (await recordsRef.child(recordId).once('value')).toJSON() as IPoemRecord | null;
+
+const updatePoemRecord = async (poemRecord: IPoemRecord) => await recordsRef.child(poemRecord.id).update(poemRecord);
+
+const saveNewPoemRecord = async (userId: string, poemId: string, record: UploadedFile): Promise<IPoemRecord> => {
+  const recordId = v4();
+  const file = storage.file(`${poemId}/${recordId}.mp3`);
+  await file.save(record.data);
+  const url = (
+    await file.getSignedUrl({
+      action: 'read',
+      expires: '03-09-2491',
+    })
+  )[0];
+  const poemRecord: IPoemRecord = {
+    id: recordId,
+    url,
+    owner: userId,
+    poem: poemId,
+    rating: 0,
+  };
+  updatePoemRecord(poemRecord);
+  usersRef.child(`${userId}/records`).transaction((arr) => {
+    arr ??= [];
+    arr.push(recordId);
+    return arr;
+  });
+  return poemRecord;
+};
+
+const getUser = async (userId: string): Promise<IUser | null> => (await usersRef.child(userId).once('value')).toJSON() as IUser | null;
+
+const updateUser = async (user: IUser) => await usersRef.child(user.id).update(user);
+
+const calculateUserRating = async (recordIds: string[]) => {
+  const votes: number[] = [];
+  for (let i = 0; i < recordIds.length; i++) {
+    const poemRecord = await getPoemRecord(recordIds[i]);
+    if (!poemRecord) continue;
+    votes.push(poemRecord.rating);
+  }
+  console.log(votes);
+  return Number((votes.reduce((sum, value) => sum + value, 0) / votes.length).toFixed(1));
+};
+
+const deletePoemRecord = async (userId: string, recordId: string): Promise<boolean> => {
+  const recordRef = recordsRef.child(recordId);
+  const poemRecord = (await recordRef.once('value')).toJSON() as IPoemRecord | null;
+  if (!poemRecord || poemRecord.owner !== userId) return false;
+  recordRef.remove();
+  const user = await getUser(userId);
+  if (user && user.records) {
+    const arr = Object.values(user.records);
+    user.records = arr.filter((id: string) => id !== recordId) as unknown as Record<string, string>;
+    user.rating = await calculateUserRating(arr);
+    updateUser(user);
+  }
+  return true;
+};
+
+const setPoemRecordScore = async (recordId: string, userId: string, vote: number): Promise<boolean> => {
+  const poemRecord = await getPoemRecord(recordId);
+  if (!poemRecord) return false;
+  poemRecord.votes ??= {};
+  poemRecord.votes[userId] = vote;
+  const votes = Object.values(poemRecord.votes);
+  poemRecord.rating = Number((votes.reduce((sum, value) => sum + value, 0) / votes.length).toFixed(1));
+  await updatePoemRecord(poemRecord);
+  const owner = await getUser(poemRecord.owner);
+  if (owner && owner.records && Object.values(owner.records).includes(recordId)) {
+    owner.rating = await calculateUserRating(Object.values(owner.records));
+    updateUser(owner);
+  }
+  return true;
+};
+
+const getPoemRecords = async (poemId: string, offset: number): Promise<IPoemRecord[]> => {
+  const poemRecords = (await recordsRef.orderByChild('poem').equalTo(poemId).once('value')).toJSON() as Record<string, IPoemRecord> | null;
+  if (!poemRecords) return [];
+  const arr = Object.values(poemRecords)
+    .sort((a, b) => b.rating - a.rating)
+    .slice(offset, offset + 10);
+  return arr;
+};
+
+const getAllPoemRecords = async (offset: number): Promise<IPoemRecord[]> => {
+  const poemRecords = (await recordsRef.once('value')).toJSON() as Record<string, IPoemRecord> | null;
+  if (!poemRecords) return [];
+  const arr = Object.values(poemRecords)
+    .sort((a, b) => b.rating - a.rating)
+    .slice(offset, offset + 10);
+  return arr;
+};
+
+const getSortedRecords = async (records: string[], poemId?: string): Promise<IPoemRecord[]> => {
+  const poemRecords: IPoemRecord[] = [];
+  console.log(records);
+  for (let i = 0; i < records.length; i++) {
+    const recordId = records[i];
+    const record = await getPoemRecord(recordId);
+    if (!record || (poemId && record.poem !== poemId)) continue;
+    poemRecords.push(record);
+  }
+  return poemRecords.sort((a, b) => b.rating - a.rating);
+};
+
+const getUserRecords = async (userId: string, poemId?: string): Promise<IPoemRecord[]> => {
+  const user = await getUser(userId);
+  if (!user || !user.records) return [];
+  return getSortedRecords(Object.values(user.records), poemId);
+};
+
+const getAllUserRecords = async (offset: number, poemId?: string): Promise<{ userId: string; records: IPoemRecord[] }[]> => {
+  const usersData = (await usersRef.once('value')).toJSON() as Record<string, IUser> | null;
+  if (!usersData) return [];
+  const users = Object.values(usersData)
+    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+    .slice(offset, offset + 10);
+  const usersRecords: { userId: string; records: IPoemRecord[] }[] = [];
+  for (const user of users) {
+    if (!user.records) continue;
+    usersRecords.push({ userId: user.id, records: await getSortedRecords(Object.values(user.records), poemId) });
+  }
+  return usersRecords;
+};
+
+// const getUsersRating = async (poemId?: string): Promise<IUser[]> => {};
+
+// (async () => {
+//   do {
+//     todayPoemId = String(Math.ceil(Math.random() * 49000));
+//     console.log('try ', todayPoemId);
+//   } while (!(await poemIsExists(todayPoemId)));
+//   console.log(todayPoemId);
+// })();
 // const test = async () => {
 //   for (let i = 1; i < 48823; i++) {
 //     const poem = await getPoem(String(i));
@@ -115,4 +249,22 @@ const searchPoems = async (author?: IAuthor, title?: string) => {
 //   }
 // };
 
-export { getPoem, poemIsExists, savePoem, searchPoems, comparePoem, logsRef, saveLog, cleanLog, getTodayPoem };
+export {
+  getPoem,
+  poemIsExists,
+  savePoem,
+  searchPoems,
+  comparePoem,
+  logsRef,
+  saveLog,
+  cleanLog,
+  getAllPoemRecords,
+  getTodayPoem,
+  saveNewPoemRecord,
+  deletePoemRecord,
+  getPoemRecords,
+  getPoemRecord,
+  setPoemRecordScore,
+  getUserRecords,
+  getAllUserRecords,
+};

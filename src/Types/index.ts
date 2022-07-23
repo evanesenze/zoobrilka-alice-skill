@@ -2,6 +2,8 @@ type PoemTextType = 'full' | 'block' | 'row';
 
 type SceneType = 'LEARN_SCENE' | 'FIND_MENU_SCENE' | 'SELECT_LIST_SCENE' | 'MENU';
 
+type IPoemRecordVotes = Record<string, number>;
+
 // type FindProperty = 'title' | 'first_line' | 'author';
 
 interface IAuthor {
@@ -14,8 +16,23 @@ interface IPoem {
   title: string;
   first_line: string;
   text: string;
-  tags: string[];
+  tags: Record<string, boolean>;
   id: number;
+}
+
+interface IPoemRecord {
+  id: string;
+  url: string;
+  owner: string;
+  poem: string;
+  rating: number;
+  votes?: IPoemRecordVotes;
+}
+
+interface IUser {
+  id: string;
+  records?: Record<string, string>;
+  rating?: number;
 }
 
 interface ILearnData {
