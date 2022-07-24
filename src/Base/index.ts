@@ -223,15 +223,13 @@ const getAllUserRecords = async (offset: number, poemId?: string): Promise<{ use
   return usersRecords;
 };
 
-// const getUsersRating = async (poemId?: string): Promise<IUser[]> => {};
-
-// (async () => {
-//   do {
-//     todayPoemId = String(Math.ceil(Math.random() * 49000));
-//     console.log('try ', todayPoemId);
-//   } while (!(await poemIsExists(todayPoemId)));
-//   console.log(todayPoemId);
-// })();
+const reshuffleTodayPoemId = async () => {
+  do {
+    todayPoemId = String(Math.ceil(Math.random() * 49000));
+    console.log('try ', todayPoemId);
+  } while (!(await poemIsExists(todayPoemId)));
+  console.log('todayPoemId >', todayPoemId);
+};
 // const test = async () => {
 //   for (let i = 1; i < 48823; i++) {
 //     const poem = await getPoem(String(i));
@@ -267,4 +265,5 @@ export {
   setPoemRecordScore,
   getUserRecords,
   getAllUserRecords,
+  reshuffleTodayPoemId,
 };

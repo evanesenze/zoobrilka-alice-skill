@@ -16,8 +16,8 @@ import { serve, setup } from 'swagger-ui-express';
 import { alice } from '../Alice';
 import cors from 'cors';
 import fileupload from 'express-fileupload';
-import swaggerDoc from './swagger.json';
-// import swaggerDoc from './swagger.dev.json';
+// import swaggerDoc from './swagger.json';
+import swaggerDoc from './swagger.dev.json';
 
 const app = express();
 
@@ -30,20 +30,19 @@ app.use(fileupload({ limits: { files: 1 } }));
 // Возвращает стих
 app.get('/api/poem/:id', async (req, res) => {
   const { id } = req.params as { id: string };
-  const poem = id === 'today' ? await getTodayPoem() : getPoem(id);
+  const poem = id === 'today' ? await getTodayPoem() : await getPoem(id);
   if (!poem) return res.status(404).send({ error: { message: 'Poem not found' } });
   return res.send({ response: poem });
 });
 // Возвращает записи стиха
-app.get('/api/poem/:id/records', async (req, res) => {
-  const { id } = req.params as { id?: string };
+app.get('/api/records/:poemId', async (req, res) => {
+  const { poemId } = req.params as { poemId: string };
   const { offset } = req.query as { offset?: number };
-  if (!id) return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
-  const response = await getPoemRecords(id, offset ?? 0);
+  const response = await getPoemRecords(poemId, offset ?? 0);
   return res.send({ response });
 });
 // Возвращает записи стихов
-app.get('/api/poems/records', async (req, res) => {
+app.get('/api/records', async (req, res) => {
   const { offset } = req.query as { offset?: number };
   const response = await getAllPoemRecords(offset ?? 0);
   return res.send({ response });

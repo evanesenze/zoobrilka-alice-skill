@@ -82,74 +82,15 @@
         }
       }
     },
-    "/api/poem/{id}/records": {
-      "get": {
-        "tags": ["Poem"],
-        "summary": "Возвращает записи стиха по рейтингу",
-        "parameters": [
-          { "in": "path", "name": "id", "required": true, "type": "string" },
-          { "in": "query", "name": "offset", "type": "number" }
-        ],
-        "responses": {
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "error": {
-                  "$ref": "#/definitions/Error"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "response": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/Record"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/poems/records": {
-      "get": {
-        "tags": ["Poem"],
-        "summary": "Возвращает записи стихов по рейтингу",
-        "parameters": [{ "in": "query", "name": "offset", "type": "number" }],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "response": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/Record"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/record": {
       "post": {
         "tags": ["Record"],
         "summary": "Загрузка новой записи",
+        "description": "Content-Type: multipart/form-data",
         "parameters": [
-          { "in": "body", "name": "record", "required": true, "description": "Файл" },
-          { "in": "body", "name": "userId", "required": true },
-          { "in": "body", "name": "poemId", "required": true }
+          { "in": "body", "name": "record", "required": true, "description": "Файл", "schema": { "type": "object" } },
+          { "in": "body", "name": "userId", "required": true, "schema": { "type": "string" } },
+          { "in": "body", "name": "poemId", "required": true, "schema": { "type": "string" } }
         ],
         "responses": {
           "400": {
@@ -212,7 +153,7 @@
         "summary": "Удалить запись",
         "parameters": [
           { "in": "path", "name": "id", "required": true, "type": "string" },
-          { "in": "body", "name": "userId", "required": true }
+          { "in": "body", "name": "userId", "required": true, "schema": { "type": "string" } }
         ],
         "responses": {
           "400": {
@@ -241,8 +182,8 @@
         "summary": "Оценить запись",
         "parameters": [
           { "in": "path", "name": "id", "required": true, "type": "string" },
-          { "in": "body", "name": "userId", "required": true },
-          { "in": "body", "name": "vote", "required": true, "description": "Оценка" }
+          { "in": "body", "name": "userId", "required": true, "schema": { "type": "string" } },
+          { "in": "body", "name": "vote", "required": true, "schema": { "type": "integer" } }
         ],
         "responses": {
           "400": {
@@ -261,6 +202,66 @@
           },
           "201": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/records/{poemId}": {
+      "get": {
+        "tags": ["Record"],
+        "summary": "Возвращает записи стиха по рейтингу",
+        "parameters": [
+          { "in": "path", "name": "poemId", "required": true, "type": "string" },
+          { "in": "query", "name": "offset", "type": "number" }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "response": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Record"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records": {
+      "get": {
+        "tags": ["Record"],
+        "summary": "Возвращает записи стихов по рейтингу",
+        "parameters": [{ "in": "query", "name": "offset", "type": "number" }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "response": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Record"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -364,7 +365,7 @@
       "required": ["author", "title", "first_line", "text", "id"],
       "properties": {
         "id": { "type": "integer", "uniqueItems": true },
-        "author": { "type": "object", "properties": { "firstName": { "type": "string", "required": true }, "lastName": { "type": "string", "required": true } } },
+        "author": { "type": "object", "required": ["firstName", "lastName"], "properties": { "firstName": { "type": "string" }, "lastName": { "type": "string" } } },
         "title": { "type": "string" },
         "text": { "type": "string" },
         "first_line": { "type": "string" },

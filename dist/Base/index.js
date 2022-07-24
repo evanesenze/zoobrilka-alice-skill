@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllUserRecords = exports.getUserRecords = exports.setPoemRecordScore = exports.getPoemRecord = exports.getPoemRecords = exports.deletePoemRecord = exports.saveNewPoemRecord = exports.getTodayPoem = exports.getAllPoemRecords = exports.cleanLog = exports.saveLog = exports.logsRef = exports.comparePoem = exports.searchPoems = exports.savePoem = exports.poemIsExists = exports.getPoem = void 0;
+exports.reshuffleTodayPoemId = exports.getAllUserRecords = exports.getUserRecords = exports.setPoemRecordScore = exports.getPoemRecord = exports.getPoemRecords = exports.deletePoemRecord = exports.saveNewPoemRecord = exports.getTodayPoem = exports.getAllPoemRecords = exports.cleanLog = exports.saveLog = exports.logsRef = exports.comparePoem = exports.searchPoems = exports.savePoem = exports.poemIsExists = exports.getPoem = void 0;
 // import 'dotenv/config';
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const string_comparison_1 = require("string-comparison");
@@ -228,3 +228,11 @@ const getAllUserRecords = (offset, poemId) => __awaiter(void 0, void 0, void 0, 
     return usersRecords;
 });
 exports.getAllUserRecords = getAllUserRecords;
+const reshuffleTodayPoemId = () => __awaiter(void 0, void 0, void 0, function* () {
+    do {
+        todayPoemId = String(Math.ceil(Math.random() * 49000));
+        console.log('try ', todayPoemId);
+    } while (!(yield poemIsExists(todayPoemId)));
+    console.log('todayPoemId >', todayPoemId);
+});
+exports.reshuffleTodayPoemId = reshuffleTodayPoemId;

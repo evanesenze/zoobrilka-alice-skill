@@ -38,8 +38,8 @@ const swagger_ui_express_1 = require("swagger-ui-express");
 const Alice_1 = require("../Alice");
 const cors_1 = __importDefault(require("cors"));
 const express_fileupload_1 = __importDefault(require("express-fileupload"));
-const swagger_json_1 = __importDefault(require("./swagger.json"));
-// import swaggerDoc from './swagger.dev.json';
+// import swaggerDoc from './swagger.json';
+const swagger_dev_json_1 = __importDefault(require("./swagger.dev.json"));
 const app = (0, express_1.default)();
 exports.app = app;
 app.use((0, express_1.json)());
@@ -50,22 +50,20 @@ app.use((0, express_fileupload_1.default)({ limits: { files: 1 } }));
 // Возвращает стих
 app.get('/api/poem/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const poem = id === 'today' ? yield (0, Base_1.getTodayPoem)() : (0, Base_1.getPoem)(id);
+    const poem = id === 'today' ? yield (0, Base_1.getTodayPoem)() : yield (0, Base_1.getPoem)(id);
     if (!poem)
         return res.status(404).send({ error: { message: 'Poem not found' } });
     return res.send({ response: poem });
 }));
 // Возвращает записи стиха
-app.get('/api/poem/:id/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params;
+app.get('/api/records/:poemId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { poemId } = req.params;
     const { offset } = req.query;
-    if (!id)
-        return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
-    const response = yield (0, Base_1.getPoemRecords)(id, offset !== null && offset !== void 0 ? offset : 0);
+    const response = yield (0, Base_1.getPoemRecords)(poemId, offset !== null && offset !== void 0 ? offset : 0);
     return res.send({ response });
 }));
 // Возвращает записи стихов
-app.get('/api/poems/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/api/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { offset } = req.query;
     const response = yield (0, Base_1.getAllPoemRecords)(offset !== null && offset !== void 0 ? offset : 0);
     return res.send({ response });
@@ -138,7 +136,7 @@ app.get('/api/search', (req, res) => __awaiter(void 0, void 0, void 0, function*
     return res.send({ response });
 }));
 app.get('/wakeup', (req, res) => res.send('OK'));
-app.use('/swagger', swagger_ui_express_1.serve, (0, swagger_ui_express_1.setup)(swagger_json_1.default));
+app.use('/swagger', swagger_ui_express_1.serve, (0, swagger_ui_express_1.setup)(swagger_dev_json_1.default));
 app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield Alice_1.alice.handleRequest(req.body);
     return res.send(result);
