@@ -6,6 +6,7 @@ const atLearn = new Scene(LEARN_SCENE);
 
 atLearn.command(/дальше/gi, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
+  if (!learnData) return Reply.text('Вы не можете этого сделать');
   console.log('currentBlock is complited');
   console.log(learnData);
   const { currentBlock, poem } = learnData;
@@ -26,6 +27,7 @@ atLearn.command(/дальше/gi, (ctx) => {
 
 atLearn.command(/повторить стих/gi, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
+  if (!learnData) return Reply.text('Вы не можете этого сделать');
   console.log('repeat poem');
   const newLearnData: ILearnData = { ...learnData, textType: 'full' };
   const text = 'Повтори стих:\n\n' + getPoemText(newLearnData);
@@ -35,6 +37,7 @@ atLearn.command(/повторить стих/gi, (ctx) => {
 
 atLearn.command(/повторить блок/gi, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
+  if (!learnData) return Reply.text('Вы не можете этого сделать');
   console.log('repeat poem');
   const newLearnData: ILearnData = { ...learnData, textType: 'block' };
   const text = 'Повтори блок:\n\n' + getPoemText(newLearnData);
@@ -44,6 +47,7 @@ atLearn.command(/повторить блок/gi, (ctx) => {
 
 atLearn.command(/продолжить/gi, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
+  if (!learnData) return Reply.text('Вы не можете этого сделать');
   const poemText = getPoemText(learnData);
   if (!learnData.errorCount) return Reply.text('Ты не допустили ни одной ошибки. Продолжай учить:\n\n' + poemText);
   return goLearnNext(ctx, { ...learnData, errorCount: 0 });
@@ -57,6 +61,7 @@ atLearn.command(...helpHandler);
 
 atLearn.any((ctx) => {
   const learnData = getOldLearnData(ctx.session);
+  if (!learnData) return Reply.text('Вы не можете этого сделать');
   const poemText = getPoemText(learnData);
   const matchDigit = levenshtein.similarity(poemText.toLowerCase(), ctx.message.toLowerCase());
   // console.log(matchDigit);

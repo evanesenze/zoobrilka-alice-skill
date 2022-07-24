@@ -19,26 +19,22 @@ import {
 } from './extras';
 import { getTodayPoem, saveLog } from '../Base';
 import { CommandDeclaration } from 'yandex-dialogs-sdk/dist/command/command';
-import { atFindMenu } from './FindMenuScene';
-import { atLearn } from './LearnScene';
-import { atSelectList } from './SelectListScene';
+import { atFindMenu } from './findMenuScene';
+import { atLearn } from './learnScene';
+import { atSelectList } from './selectListScene';
 import { sample } from 'lodash';
 
 const alice = new Alice();
 
-alice.command('', () => {
+alice.command('', (ctx) => {
+  const c = ctx as IStageContext;
+  const learnData = getOldLearnData(c.session);
+  console.log(learnData);
   return Reply.text(`Добро пожаловать в "Зубрилку".
-${sample(['Здесь ты можешь выучить стихотворение.', 'Я помогу тебе выучить стихотворение.'])}
-Скажи 'Учить', чтобы продолжить учить.
+${sample(['Здесь ты можешь выучить стихотворение.', 'Я помогу тебе выучить стихотворение.'])}${learnData ? "\nСкажи 'Учить', чтобы продолжить учить." : ''}
 Скажи 'Найти', чтобы начать поиск.
 Скажи 'Помощь' в любом месте, чтобы получить помощь.`);
 });
-
-// alice.command(/да|знаком/gi, () =>
-//   Reply.text(`Итак, что будем учить сегодня?
-// Скажи "Продолжить", и мы продолжим учить стих.
-// Скажи "Новое", и мы найдем новый стих.`)
-// );
 
 alice.command(/новый|новое|другое|найти|поиск|искать/gi, (ctx) => {
   const c = ctx as IStageContext;
@@ -57,12 +53,13 @@ alice.command(/учить|продолжи/gi, (ctx) => {
     return Reply.text('Ты ещё не начал учить стихотворение с "Зубрилкой".\nНазови имя/фамилию автора или название стиха, чтобы начать поиск');
   }
   addSceneHistory(c.session, LEARN_SCENE);
-  c.enter(LEARN_SCENE);
   const { poem } = learnData;
   const poemText = getPoemText(learnData);
-  const text = `Продолжаем учить стих ${getAuthorName(poem.author)} - ${poem.title}
-Повтори:
+  const text = `Продолжаем учить стих ${getAuthorName(poem.author)} - ${poem.title}.
+Повтори текст:
+
 ${poemText}`;
+  c.enter(LEARN_SCENE);
   return Reply.text(text);
 });
 
@@ -94,7 +91,6 @@ alice.command(...(helpHandler as [declaration: CommandDeclaration<IContext>, cal
 alice.any((ctx) => {
   const c = ctx as IStageContext;
   const currentScene = getCurrentScene(c.session);
-  if (!currentScene) return Reply.text('К сожалению я не понял, что вы хотели сказать, повторите пожалуйста.');
   const hint = String(sample(sceneHints[currentScene]));
   return Reply.text(hint);
 });

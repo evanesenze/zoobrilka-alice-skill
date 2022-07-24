@@ -1,6 +1,6 @@
 type PoemTextType = 'full' | 'block' | 'row';
 
-type SceneType = 'LEARN_SCENE' | 'FIND_MENU_SCENE' | 'SELECT_LIST_SCENE' | 'MENU';
+type SceneType = 'LEARN_SCENE' | 'FIND_MENU_SCENE' | 'SET_AUTHOR_SCENE' | 'SET_TITLE_SCENE' | 'SELECT_LIST_SCENE' | 'MENU';
 
 type IPoemRecordVotes = Record<string, number>;
 

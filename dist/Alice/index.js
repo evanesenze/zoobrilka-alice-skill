@@ -13,24 +13,21 @@ exports.alice = void 0;
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
 const extras_1 = require("./extras");
 const Base_1 = require("../Base");
-const FindMenuScene_1 = require("./FindMenuScene");
-const LearnScene_1 = require("./LearnScene");
-const SelectListScene_1 = require("./SelectListScene");
+const findMenuScene_1 = require("./findMenuScene");
+const learnScene_1 = require("./learnScene");
+const selectListScene_1 = require("./selectListScene");
 const lodash_1 = require("lodash");
 const alice = new yandex_dialogs_sdk_1.Alice();
 exports.alice = alice;
-alice.command('', () => {
+alice.command('', (ctx) => {
+    const c = ctx;
+    const learnData = (0, extras_1.getOldLearnData)(c.session);
+    console.log(learnData);
     return yandex_dialogs_sdk_1.Reply.text(`Добро пожаловать в "Зубрилку".
-${(0, lodash_1.sample)(['Здесь ты можешь выучить стихотворение.', 'Я помогу тебе выучить стихотворение.'])}
-Скажи 'Учить', чтобы продолжить учить.
+${(0, lodash_1.sample)(['Здесь ты можешь выучить стихотворение.', 'Я помогу тебе выучить стихотворение.'])}${learnData ? "\nСкажи 'Учить', чтобы продолжить учить." : ''}
 Скажи 'Найти', чтобы начать поиск.
 Скажи 'Помощь' в любом месте, чтобы получить помощь.`);
 });
-// alice.command(/да|знаком/gi, () =>
-//   Reply.text(`Итак, что будем учить сегодня?
-// Скажи "Продолжить", и мы продолжим учить стих.
-// Скажи "Новое", и мы найдем новый стих.`)
-// );
 alice.command(/новый|новое|другое|найти|поиск|искать/gi, (ctx) => {
     const c = ctx;
     (0, extras_1.addSceneHistory)(c.session, extras_1.FIND_MENU_SCENE);
@@ -47,12 +44,13 @@ alice.command(/учить|продолжи/gi, (ctx) => {
         return yandex_dialogs_sdk_1.Reply.text('Ты ещё не начал учить стихотворение с "Зубрилкой".\nНазови имя/фамилию автора или название стиха, чтобы начать поиск');
     }
     (0, extras_1.addSceneHistory)(c.session, extras_1.LEARN_SCENE);
-    c.enter(extras_1.LEARN_SCENE);
     const { poem } = learnData;
     const poemText = (0, extras_1.getPoemText)(learnData);
-    const text = `Продолжаем учить стих ${(0, extras_1.getAuthorName)(poem.author)} - ${poem.title}
-Повтори:
+    const text = `Продолжаем учить стих ${(0, extras_1.getAuthorName)(poem.author)} - ${poem.title}.
+Повтори текст:
+
 ${poemText}`;
+    c.enter(extras_1.LEARN_SCENE);
     return yandex_dialogs_sdk_1.Reply.text(text);
 });
 alice.command(/запомни|запиши|запись|записать|запомнить/gi, () => yandex_dialogs_sdk_1.Reply.text('К сожалению, я не умею записывать ваш голос. Перейди на сайт', { buttons: [yandex_dialogs_sdk_1.Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://www.google.com' })] }));
@@ -76,8 +74,6 @@ alice.command(...extras_1.helpHandler);
 alice.any((ctx) => {
     const c = ctx;
     const currentScene = (0, extras_1.getCurrentScene)(c.session);
-    if (!currentScene)
-        return yandex_dialogs_sdk_1.Reply.text('К сожалению я не понял, что вы хотели сказать, повторите пожалуйста.');
     const hint = String((0, lodash_1.sample)(extras_1.sceneHints[currentScene]));
     return yandex_dialogs_sdk_1.Reply.text(hint);
 });
@@ -88,6 +84,6 @@ alice.on('response', (ctx) => {
     (0, Base_1.saveLog)(c.userId, (0, extras_1.getAllSessionData)(c.session));
 });
 // registerLearnScene(alice, LEARN_SCENE);
-alice.registerScene(LearnScene_1.atLearn);
-alice.registerScene(FindMenuScene_1.atFindMenu);
-alice.registerScene(SelectListScene_1.atSelectList);
+alice.registerScene(learnScene_1.atLearn);
+alice.registerScene(findMenuScene_1.atFindMenu);
+alice.registerScene(selectListScene_1.atSelectList);

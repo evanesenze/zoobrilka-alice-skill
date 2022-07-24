@@ -16,12 +16,16 @@ const ROWS_COUNT = 2;
 const FIND_MENU_SCENE: SceneType = 'FIND_MENU_SCENE';
 const SELECT_LIST_SCENE: SceneType = 'SELECT_LIST_SCENE';
 const LEARN_SCENE: SceneType = 'LEARN_SCENE';
+const SET_AUTHOR_SCENE: SceneType = 'SET_AUTHOR_SCENE';
+const SET_TITLE_SCENE: SceneType = 'SET_TITLE_SCENE';
 
 const sceneNames: Record<SceneType, string> = {
   MENU: 'Меню',
   FIND_MENU_SCENE: 'Поиске',
   SELECT_LIST_SCENE: 'Выборе стиха',
   LEARN_SCENE: 'Зубрилке',
+  SET_AUTHOR_SCENE: 'Выборе автора',
+  SET_TITLE_SCENE: 'Выборе название',
 };
 
 const exitHandler: IHandlerType = [
@@ -52,7 +56,7 @@ const helpHandler: IHandlerType = [
     const scene = getCurrentScene(ctx.session);
     const sceneName = sceneNames[scene];
     const message = String(sample(sceneHints[scene]));
-    return Reply.text(`Ты находишься в ${sceneName}
+    return Reply.text(`Ты находишься в ${sceneName}.
 ${message}`);
   },
 ];
@@ -62,15 +66,19 @@ const sceneMessages: Record<SceneType, string[]> = {
   LEARN_SCENE: ['Повторяй строчки стиха, чтобы двигаться дальше.'],
   FIND_MENU_SCENE: ['Назови имя/фамилию автора или название стиха, чтобы начать поиск.'],
   SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску"],
+  SET_AUTHOR_SCENE: [''],
+  SET_TITLE_SCENE: [''],
 };
 
 const sceneHints: Record<SceneType, TextReplyDeclaration[]> = {
   MENU: [
-    "Скажи 'Учить', чтобы продолжить учить.\nСкажи 'Найти', чтобы начать поиск.\nСкажи 'Стих дня', чтобы узнать стих дня.\nСкажи 'Помощь' в любом месте, чтобы получить помощь.\nСкажи 'Я устал', для завершения чата",
+    "Скажи 'Учить', чтобы продолжить учить.\nСкажи 'Найти', чтобы начать поиск.\nСкажи 'Стих дня', чтобы узнать стих дня.\nСкажи 'Помощь' в любом месте, чтобы получить помощь.\nСкажи 'Я устал', для завершения чата.",
   ],
-  LEARN_SCENE: ["Повторяй строчки стиха, чтобы двигаться дальше.\nСкажи 'Продолжить', чтобы пропустить текущий шаг\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
-  FIND_MENU_SCENE: ["Назови имя/фамилию автора или название стиха, чтобы начать поиск.\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
-  SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата"],
+  LEARN_SCENE: ["Повторяй строчки стиха, чтобы двигаться дальше.\nСкажи 'Продолжить', чтобы пропустить текущий шаг\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата."],
+  FIND_MENU_SCENE: ["Назови имя/фамилию автора или название стиха, чтобы начать поиск.\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата."],
+  SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата."],
+  SET_AUTHOR_SCENE: [''],
+  SET_TITLE_SCENE: [],
 };
 
 const enableLogging = (session: ISession) => session.set('logging', true);
@@ -170,7 +178,7 @@ const getAllSessionData = (session?: ISession) => {
 
 const deleteLearnData = (session: ISession) => session.delete('learnData');
 
-const getOldLearnData = (session: ISession) => session.get<ILearnData>('learnData');
+const getOldLearnData = (session: ISession): ILearnData | undefined => session.get<ILearnData>('learnData');
 
 const getBlocksData = (text: string) => text.split('\n\n').map((item) => item.split('\n'));
 
@@ -265,6 +273,8 @@ const saveSelectListData = (session: ISession, newData: ISelectListData) => sess
 export {
   FIND_MENU_SCENE,
   SELECT_LIST_SCENE,
+  SET_AUTHOR_SCENE,
+  SET_TITLE_SCENE,
   LEARN_SCENE,
   exitHandler,
   backHandler,
