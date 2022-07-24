@@ -137,7 +137,7 @@ const extractAuthor = (entities?: IApiEntity[]): IAuthor => {
   return { firstName, lastName };
 };
 
-const getAuthorName = (author?: IAuthor, short?: boolean): string => `${(short && author?.firstName ? author?.firstName[0] : author?.firstName) ?? ''} ${author?.lastName ?? ''}`.trim();
+const getAuthorName = (author?: IAuthor, short?: boolean): string => `${(short && author?.firstName ? `${author?.firstName[0]}.` : author?.firstName) ?? ''} ${author?.lastName ?? ''}`.trim();
 
 const getAllSessionData = (session?: ISession) => {
   if (!session)

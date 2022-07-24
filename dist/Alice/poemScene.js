@@ -20,7 +20,7 @@ atPoemScene.command(/прочитай/gi, (ctx) => {
     if (!newLearnData)
         return yandex_dialogs_sdk_1.Reply.text('Сейчас вы не можете это сделать');
     const poemText = (0, extras_1.getPoemText)(newLearnData) + '.Что хотите делать дальше?';
-    return yandex_dialogs_sdk_1.Reply.text('', { tts: poemText });
+    return yandex_dialogs_sdk_1.Reply.text({ text: '', tts: poemText });
 });
 atPoemScene.command(/учить/gi, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);
@@ -36,14 +36,14 @@ atPoemScene.command(/учить/gi, (ctx) => {
     (0, extras_1.saveLearnData)(ctx.session, learnData);
     (0, extras_1.addSceneHistory)(ctx.session, extras_1.LEARN_SCENE);
     ctx.enter(extras_1.LEARN_SCENE);
-    return yandex_dialogs_sdk_1.Reply.text('Повтори строку.\nСкажи "Дальше", чтобы продолжить учить\n\n' + text, { end_session: true });
+    return yandex_dialogs_sdk_1.Reply.text('Повтори строку.\nСкажи "Дальше", чтобы перейти к следующей строке\n\n' + text, { end_session: true });
 });
 atPoemScene.command(/поиск/gi, (ctx) => {
     (0, extras_1.deleteFindData)(ctx.session);
     const text = String((0, lodash_1.sample)(extras_1.sceneMessages[extras_1.SET_AUTHOR_SCENE]));
     (0, extras_1.cleanSceneHistory)(ctx.session);
     (0, extras_1.addSceneHistory)(ctx.session, extras_1.SET_AUTHOR_SCENE);
-    ctx.enter(extras_1.SET_AUTHOR_SCENE); // !!
+    ctx.enter(extras_1.SET_AUTHOR_SCENE);
     return yandex_dialogs_sdk_1.Reply.text(text);
 });
 atPoemScene.any(extras_1.helpHandler[1]);

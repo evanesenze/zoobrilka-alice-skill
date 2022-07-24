@@ -34,7 +34,8 @@ atSetAuthor.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const author = (0, extras_1.extractAuthor)(entities);
     const authorName = (0, extras_1.getAuthorName)(author);
     console.log(authorName);
-    const text = `Автор: ${authorName || 'Не задан'}.`;
+    const text = `Автор: ${authorName || 'Не задан'}.
+Скажи 'Дальше' или 'Пропустить', чтобы продолжить.`;
     const tts = text + 'Если я правильно тебя понял, скажи "Дальше", если нет - попробуй сказать по-другому.';
     (0, extras_1.saveFindData)(ctx.session, { title: '', author, poems: [], items: [] });
     return yandex_dialogs_sdk_1.Reply.text({ text, tts });

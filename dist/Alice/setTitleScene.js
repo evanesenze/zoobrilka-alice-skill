@@ -53,7 +53,7 @@ atSetTitle.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     let text = `Автор: ${authorName || 'Не задан'}.
 Название: ${ctx.message}.`;
     if (poems.length) {
-        const items = poems.map(({ title, author }, i) => `${i + 1}). ${(0, extras_1.getAuthorName)(author, true)} | ${title}`.substring(0, 128));
+        const items = poems.map(({ title, author }, i) => `${i + 1}). ${(0, extras_1.getAuthorName)(author, true)} - ${title}.`.substring(0, 128));
         const itemsText = items.reduce((res, item) => (res += `\n${item}`), '\nВот что я нашел:');
         text += itemsText + '\nДля выбора назови номер стиха.';
         (0, extras_1.saveFindData)(ctx.session, Object.assign(Object.assign({}, findData), { title: ctx.message, poems, items }));

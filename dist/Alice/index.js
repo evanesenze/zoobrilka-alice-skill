@@ -15,7 +15,6 @@ const extras_1 = require("./extras");
 const Base_1 = require("../Base");
 const learnScene_1 = require("./learnScene");
 const poemScene_1 = require("./poemScene");
-// import { atSelectList } from './selectListScene';
 const setAuthorScene_1 = require("./setAuthorScene");
 const setTitleScene_1 = require("./setTitleScene");
 const lodash_1 = require("lodash");
@@ -48,7 +47,7 @@ alice.command(/учить|продолжи/gi, (ctx) => {
     const { poem } = learnData;
     const poemText = (0, extras_1.getPoemText)(learnData);
     const text = `Продолжаем учить стих ${(0, extras_1.getAuthorName)(poem.author)} - ${poem.title}.
-Повтори текст:
+Скажи 'Дальше', чтобы перейти к следующей строке.
 
 ${poemText}`;
     c.enter(extras_1.LEARN_SCENE);
@@ -90,9 +89,7 @@ alice.on('response', (ctx) => {
         return;
     (0, Base_1.saveLog)(c.userId, (0, extras_1.getAllSessionData)(c.session));
 });
-// registerLearnScene(alice, LEARN_SCENE);
 alice.registerScene(learnScene_1.atLearn);
 alice.registerScene(poemScene_1.atPoemScene);
-// alice.registerScene(atSelectList);
 alice.registerScene(setAuthorScene_1.atSetAuthor);
 alice.registerScene(setTitleScene_1.atSetTitle);

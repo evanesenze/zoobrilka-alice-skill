@@ -42,7 +42,7 @@ atSetTitle.any(async (ctx) => {
   let text = `Автор: ${authorName || 'Не задан'}.
 Название: ${ctx.message}.`;
   if (poems.length) {
-    const items = poems.map(({ title, author }, i) => `${i + 1}). ${getAuthorName(author, true)} | ${title}`.substring(0, 128));
+    const items = poems.map(({ title, author }, i) => `${i + 1}). ${getAuthorName(author, true)} - ${title}.`.substring(0, 128));
     const itemsText = items.reduce((res, item) => (res += `\n${item}`), '\nВот что я нашел:');
     text += itemsText + '\nДля выбора назови номер стиха.';
     saveFindData(ctx.session, { ...findData, title: ctx.message, poems, items });

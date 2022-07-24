@@ -219,6 +219,7 @@ const getUserRecords = (userId, poemId) => __awaiter(void 0, void 0, void 0, fun
 });
 exports.getUserRecords = getUserRecords;
 const getAllUserRecords = (offset, poemId) => __awaiter(void 0, void 0, void 0, function* () {
+    var _b;
     const usersData = (yield usersRef.once('value')).toJSON();
     if (!usersData)
         return [];
@@ -229,7 +230,7 @@ const getAllUserRecords = (offset, poemId) => __awaiter(void 0, void 0, void 0, 
     for (const user of users) {
         if (!user.records)
             continue;
-        usersRecords.push({ userId: user.id, records: yield getSortedRecords(Object.values(user.records), poemId) });
+        usersRecords.push({ userId: user.id, userRating: (_b = user.rating) !== null && _b !== void 0 ? _b : 0, records: yield getSortedRecords(Object.values(user.records), poemId) });
     }
     return usersRecords;
 });

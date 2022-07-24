@@ -27,7 +27,8 @@ atSetAuthor.any(async (ctx) => {
   const author = extractAuthor(entities);
   const authorName = getAuthorName(author);
   console.log(authorName);
-  const text = `Автор: ${authorName || 'Не задан'}.`;
+  const text = `Автор: ${authorName || 'Не задан'}.
+Скажи 'Дальше' или 'Пропустить', чтобы продолжить.`;
   const tts = text + 'Если я правильно тебя понял, скажи "Дальше", если нет - попробуй сказать по-другому.';
   saveFindData(ctx.session, { title: '', author, poems: [], items: [] });
   return Reply.text({ text, tts });
