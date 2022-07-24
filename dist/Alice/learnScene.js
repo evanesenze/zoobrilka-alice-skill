@@ -5,7 +5,7 @@ const extras_1 = require("./extras");
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
 const atLearn = new yandex_dialogs_sdk_1.Scene(extras_1.LEARN_SCENE);
 exports.atLearn = atLearn;
-atLearn.command(/повторить стих/gi, (ctx) => {
+atLearn.command(/повтори.*стих/gi, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     if (!learnData)
         return yandex_dialogs_sdk_1.Reply.text('Вы не можете этого сделать');
@@ -14,7 +14,7 @@ atLearn.command(/повторить стих/gi, (ctx) => {
     (0, extras_1.saveLearnData)(ctx.session, newLearnData);
     return yandex_dialogs_sdk_1.Reply.text((0, extras_1.getPoemText)(newLearnData), { end_session: true });
 });
-atLearn.command(/повторить блок/gi, (ctx) => {
+atLearn.command(/повтори.*блок/gi, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     if (!learnData)
         return yandex_dialogs_sdk_1.Reply.text('Вы не можете этого сделать');
@@ -23,7 +23,7 @@ atLearn.command(/повторить блок/gi, (ctx) => {
     (0, extras_1.saveLearnData)(ctx.session, newLearnData);
     return yandex_dialogs_sdk_1.Reply.text((0, extras_1.getPoemText)(newLearnData), { end_session: true });
 });
-atLearn.command(/повторить/, (ctx) => {
+atLearn.command(/повтори/, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     if (!learnData)
         return yandex_dialogs_sdk_1.Reply.text('Вы не можете этого сделать');

@@ -9,7 +9,7 @@ exports.atPoemScene = atPoemScene;
 atPoemScene.command(...extras_1.exitHandler);
 atPoemScene.command(...extras_1.backHandler);
 atPoemScene.command(...extras_1.helpHandler);
-atPoemScene.command(/прочитай/gi, (ctx) => {
+atPoemScene.command(/прочитай|читай|прочитать/gi, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);
     if (!findData)
         return yandex_dialogs_sdk_1.Reply.text('Сейчас вы не можете это сделать');
@@ -19,8 +19,8 @@ atPoemScene.command(/прочитай/gi, (ctx) => {
     const newLearnData = (0, extras_1.getNewLearnData)(selectedPoem, 'full', -1, -1);
     if (!newLearnData)
         return yandex_dialogs_sdk_1.Reply.text('Сейчас вы не можете это сделать');
-    const poemText = (0, extras_1.getPoemText)(newLearnData) + '.Что хотите делать дальше?';
-    return yandex_dialogs_sdk_1.Reply.text({ text: '', tts: poemText });
+    const poemText = (0, extras_1.getPoemText)(newLearnData);
+    return yandex_dialogs_sdk_1.Reply.text({ text: poemText, tts: poemText + '.Что хотите делать дальше?' });
 });
 atPoemScene.command(/учить/gi, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);

@@ -25,15 +25,15 @@ atPoemScene.command(...backHandler);
 
 atPoemScene.command(...helpHandler);
 
-atPoemScene.command(/прочитай/gi, (ctx) => {
+atPoemScene.command(/прочитай|читай|прочитать/gi, (ctx) => {
   const findData = getFindData(ctx.session);
   if (!findData) return Reply.text('Сейчас вы не можете это сделать');
   const { selectedPoem } = findData;
   if (!selectedPoem) return Reply.text('Сейчас вы не можете это сделать');
   const newLearnData = getNewLearnData(selectedPoem, 'full', -1, -1);
   if (!newLearnData) return Reply.text('Сейчас вы не можете это сделать');
-  const poemText = getPoemText(newLearnData) + '.Что хотите делать дальше?';
-  return Reply.text({ text: '', tts: poemText });
+  const poemText = getPoemText(newLearnData);
+  return Reply.text({ text: poemText, tts: poemText + '.Что хотите делать дальше?' });
 });
 
 atPoemScene.command(/учить/gi, (ctx) => {

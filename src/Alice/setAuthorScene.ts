@@ -9,7 +9,7 @@ atSetAuthor.command(...backHandler);
 
 atSetAuthor.command(...helpHandler);
 
-atSetAuthor.command(/дальше/gi, (ctx) => {
+atSetAuthor.command(/дальше|далее/gi, (ctx) => {
   addSceneHistory(ctx.session, SET_TITLE_SCENE);
   ctx.enter(SET_TITLE_SCENE);
   return Reply.text('Автор задан. Теперь скажи название.');

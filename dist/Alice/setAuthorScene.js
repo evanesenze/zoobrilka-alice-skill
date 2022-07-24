@@ -17,7 +17,7 @@ exports.atSetAuthor = atSetAuthor;
 atSetAuthor.command(...extras_1.exitHandler);
 atSetAuthor.command(...extras_1.backHandler);
 atSetAuthor.command(...extras_1.helpHandler);
-atSetAuthor.command(/дальше/gi, (ctx) => {
+atSetAuthor.command(/дальше|далее/gi, (ctx) => {
     (0, extras_1.addSceneHistory)(ctx.session, extras_1.SET_TITLE_SCENE);
     ctx.enter(extras_1.SET_TITLE_SCENE);
     return yandex_dialogs_sdk_1.Reply.text('Автор задан. Теперь скажи название.');

@@ -3,7 +3,7 @@ import { Reply, Scene } from 'yandex-dialogs-sdk';
 
 const atLearn = new Scene(LEARN_SCENE);
 
-atLearn.command(/повторить стих/gi, (ctx) => {
+atLearn.command(/повтори.*стих/gi, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   if (!learnData) return Reply.text('Вы не можете этого сделать');
   console.log('repeat poem');
@@ -12,7 +12,7 @@ atLearn.command(/повторить стих/gi, (ctx) => {
   return Reply.text(getPoemText(newLearnData), { end_session: true });
 });
 
-atLearn.command(/повторить блок/gi, (ctx) => {
+atLearn.command(/повтори.*блок/gi, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   if (!learnData) return Reply.text('Вы не можете этого сделать');
   console.log('repeat poem');
@@ -21,7 +21,7 @@ atLearn.command(/повторить блок/gi, (ctx) => {
   return Reply.text(getPoemText(newLearnData), { end_session: true });
 });
 
-atLearn.command(/повторить/, (ctx) => {
+atLearn.command(/повтори/, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   if (!learnData) return Reply.text('Вы не можете этого сделать');
   console.log('repeat');
