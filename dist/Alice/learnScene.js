@@ -14,7 +14,7 @@ atLearn.command(/повтори.*стих/gi, (ctx) => {
     (0, extras_1.saveLearnData)(ctx.session, newLearnData);
     return yandex_dialogs_sdk_1.Reply.text((0, extras_1.getPoemText)(newLearnData), { end_session: true });
 });
-atLearn.command(/повтори.*блок/gi, (ctx) => {
+atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     if (!learnData)
         return yandex_dialogs_sdk_1.Reply.text('Вы не можете этого сделать');

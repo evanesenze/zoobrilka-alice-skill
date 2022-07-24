@@ -203,9 +203,12 @@ const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
         saveLearnData(ctx.session, { ...learnData, poemСomplited: true });
         return Reply.text(text, { end_session: true });
       } else {
-        ctx.leave();
         deleteLearnData(ctx.session);
-        return Reply.text('Поздравляю! Ты выучил новый стих');
+        deleteFindData(ctx.session);
+        cleanSceneHistory(ctx.session);
+        const text = 'Поздравляю! Ты выучил новый стих.';
+        ctx.enter('');
+        return Reply.text({ text, tts: text + 'Скажи "Записать", чтобы записать свое чтение. Скажи "Поиск", чтобы найти новый стих' });
       }
     }
     console.log('currentRow is last');

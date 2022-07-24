@@ -12,7 +12,7 @@ atLearn.command(/повтори.*стих/gi, (ctx) => {
   return Reply.text(getPoemText(newLearnData), { end_session: true });
 });
 
-atLearn.command(/повтори.*блок/gi, (ctx) => {
+atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   if (!learnData) return Reply.text('Вы не можете этого сделать');
   console.log('repeat poem');

@@ -208,9 +208,12 @@ const goLearnNext = (ctx, learnData) => {
                 return yandex_dialogs_sdk_1.Reply.text(text, { end_session: true });
             }
             else {
-                ctx.leave();
                 deleteLearnData(ctx.session);
-                return yandex_dialogs_sdk_1.Reply.text('Поздравляю! Ты выучил новый стих');
+                deleteFindData(ctx.session);
+                cleanSceneHistory(ctx.session);
+                const text = 'Поздравляю! Ты выучил новый стих.';
+                ctx.enter('');
+                return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'Скажи "Записать", чтобы записать свое чтение. Скажи "Поиск", чтобы найти новый стих' });
             }
         }
         console.log('currentRow is last');
