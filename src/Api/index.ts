@@ -78,7 +78,7 @@ app.delete('/api/record/:id', async (req, res) => {
 // Оценить запись
 app.post('/api/record/:id/vote', async (req, res) => {
   const { id } = req.params as { id?: string };
-  const { userId, vote } = req.body as { userId?: string; vote?: number };
+  const { userId, vote } = req.body as { userId?: string; vote?: string };
   if (!id) return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
   if (!userId) return res.status(400).send({ error: { message: 'Parameter "userId" is empty' } });
   if (!vote) return res.status(400).send({ error: { message: 'Parameter "vote" is empty' } });

@@ -1,27 +1,30 @@
 import { Alice, CommandCallback, IContext, IStageContext, Markup, Reply } from 'yandex-dialogs-sdk';
 import {
-  FIND_MENU_SCENE,
   LEARN_SCENE,
-  SELECT_LIST_SCENE,
+  POEM_SCENE,
+  SET_AUTHOR_SCENE,
   addSceneHistory,
-  confirmSelectPoem,
   enableLogging,
   exitHandler,
   getAllSessionData,
   getAuthorName,
   getCurrentScene,
+  getNewLearnData,
   getOldLearnData,
   getPoemText,
   helpHandler,
   loggingIsEnable,
+  saveFindData,
   sceneHints,
   sceneMessages,
 } from './extras';
 import { getTodayPoem, saveLog } from '../Base';
 import { CommandDeclaration } from 'yandex-dialogs-sdk/dist/command/command';
-import { atFindMenu } from './findMenuScene';
 import { atLearn } from './learnScene';
-import { atSelectList } from './selectListScene';
+import { atPoemScene } from './poemScene';
+// import { atSelectList } from './selectListScene';
+import { atSetAuthor } from './setAuthorScene';
+import { atSetTitle } from './setTitleScene';
 import { sample } from 'lodash';
 
 const alice = new Alice();
@@ -29,7 +32,6 @@ const alice = new Alice();
 alice.command('', (ctx) => {
   const c = ctx as IStageContext;
   const learnData = getOldLearnData(c.session);
-  console.log(learnData);
   return Reply.text(`Добро пожаловать в "Зубрилку".
 ${sample(['Здесь ты можешь выучить стихотворение.', 'Я помогу тебе выучить стихотворение.'])}${learnData ? "\nСкажи 'Учить', чтобы продолжить учить." : ''}
 Скажи 'Найти', чтобы начать поиск.
@@ -38,9 +40,9 @@ ${sample(['Здесь ты можешь выучить стихотворени�
 
 alice.command(/новый|новое|другое|найти|поиск|искать/gi, (ctx) => {
   const c = ctx as IStageContext;
-  addSceneHistory(c.session, FIND_MENU_SCENE);
-  c.enter(FIND_MENU_SCENE);
-  const message = String(sample(sceneMessages['FIND_MENU_SCENE']));
+  addSceneHistory(c.session, SET_AUTHOR_SCENE);
+  c.enter(SET_AUTHOR_SCENE);
+  const message = String(sample(sceneMessages[SET_AUTHOR_SCENE]));
   return Reply.text(message);
 });
 
@@ -48,9 +50,9 @@ alice.command(/учить|продолжи/gi, (ctx) => {
   const c = ctx as IStageContext;
   const learnData = getOldLearnData(c.session);
   if (!learnData) {
-    addSceneHistory(c.session, FIND_MENU_SCENE);
-    c.enter(FIND_MENU_SCENE);
-    return Reply.text('Ты ещё не начал учить стихотворение с "Зубрилкой".\nНазови имя/фамилию автора или название стиха, чтобы начать поиск');
+    addSceneHistory(c.session, SET_AUTHOR_SCENE);
+    c.enter(SET_AUTHOR_SCENE);
+    return Reply.text('Ты ещё не начал учить стихотворение с "Зубрилкой".\nДавай найдем новый стих. Назови автора');
   }
   addSceneHistory(c.session, LEARN_SCENE);
   const { poem } = learnData;
@@ -73,9 +75,14 @@ alice.command(/стих дня/gi, async (ctx) => {
   const c = ctx as IStageContext;
   const poem = await getTodayPoem();
   if (!poem) return Reply.text('К сожалению, сегодня не день стихов');
-  addSceneHistory(c.session, SELECT_LIST_SCENE);
-  c.enter(SELECT_LIST_SCENE);
-  return confirmSelectPoem(c, poem, { items: [poem] }, true);
+  addSceneHistory(c.session, POEM_SCENE);
+  c.enter(POEM_SCENE);
+  const text = `Стих дня ${getAuthorName(poem.author)} - ${poem.title}.\n\n`;
+  saveFindData(c.session, { author: poem.author, items: [], poems: [poem], title: poem.title, selectedPoem: poem });
+  const newLearnData = getNewLearnData(poem, 'full', -1, -1);
+  if (!newLearnData) return Reply.text('К сожалению, сегодня не день стихов');
+  const poemText = getPoemText(newLearnData);
+  return Reply.text({ text: text + poemText, tts: text + 'Скажи "Прочитай", чтобы я его озвучил.\nСкажи "Учить", чтобы начать учить.\nСкажи "Поиск", чтобы найти другой стих.' });
 });
 
 alice.command('лог', (ctx) => {
@@ -103,7 +110,9 @@ alice.on('response', (ctx) => {
 
 // registerLearnScene(alice, LEARN_SCENE);
 alice.registerScene(atLearn);
-alice.registerScene(atFindMenu);
-alice.registerScene(atSelectList);
+alice.registerScene(atPoemScene);
+// alice.registerScene(atSelectList);
+alice.registerScene(atSetAuthor);
+alice.registerScene(atSetTitle);
 
 export { alice };

@@ -1,6 +1,6 @@
 type PoemTextType = 'full' | 'block' | 'row';
 
-type SceneType = 'LEARN_SCENE' | 'FIND_MENU_SCENE' | 'SET_AUTHOR_SCENE' | 'SET_TITLE_SCENE' | 'SELECT_LIST_SCENE' | 'MENU';
+type SceneType = 'LEARN_SCENE' | 'SET_AUTHOR_SCENE' | 'SET_TITLE_SCENE' | 'POEM_SCENE' | 'MENU'; // 'FIND_MENU_SCENE' || | 'SELECT_LIST_SCENE'
 
 type IPoemRecordVotes = Record<string, number>;
 
@@ -64,10 +64,16 @@ interface IAuthorInfo {
   poemsCount: number;
 }
 
-interface ISelectListData {
-  // key: FindProperty;
-  // query: string;
-  // offset: number;
+// interface ISelectListData {
+// key: FindProperty;
+// query: string;
+// offset: number;
+// }
+
+interface IFindData {
+  author: IAuthor;
+  title: string;
+  poems: IPoem[];
+  items: string[];
   selectedPoem?: IPoem;
-  items: IPoem[];
 }

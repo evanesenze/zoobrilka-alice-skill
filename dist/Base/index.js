@@ -56,12 +56,18 @@ const savePoem = (poem) => __awaiter(void 0, void 0, void 0, function* () {
     poemsRef.child(String(poem.id)).update(poem);
 });
 exports.savePoem = savePoem;
-const comparePoem = (a, b, title, author) => {
-    var _a, _b, _c, _d;
-    const poem1 = string_comparison_1.levenshtein.similarity(a.title, title) + string_comparison_1.levenshtein.similarity(a.author.firstName, (_a = author === null || author === void 0 ? void 0 : author.firstName) !== null && _a !== void 0 ? _a : '') + string_comparison_1.levenshtein.similarity(a.author.lastName, (_b = author === null || author === void 0 ? void 0 : author.lastName) !== null && _b !== void 0 ? _b : '');
-    const poem2 = string_comparison_1.levenshtein.similarity(b.title, title) + string_comparison_1.levenshtein.similarity(b.author.firstName, (_c = author === null || author === void 0 ? void 0 : author.firstName) !== null && _c !== void 0 ? _c : '') + string_comparison_1.levenshtein.similarity(a.author.lastName, (_d = author === null || author === void 0 ? void 0 : author.lastName) !== null && _d !== void 0 ? _d : '');
-    return poem2 - poem1;
+const getPoemQuality = (poem, currentTitle, currentAuthor) => {
+    var _a, _b;
+    const { author: { firstName, lastName }, title, } = poem;
+    const titleRate = 1;
+    const firstNameRate = 2;
+    const lastNameRate = 3;
+    const quality = titleRate * string_comparison_1.levenshtein.similarity(title, currentTitle !== null && currentTitle !== void 0 ? currentTitle : '') +
+        firstNameRate * string_comparison_1.levenshtein.similarity(firstName, (_a = currentAuthor === null || currentAuthor === void 0 ? void 0 : currentAuthor.firstName) !== null && _a !== void 0 ? _a : '') +
+        lastNameRate * string_comparison_1.levenshtein.similarity(lastName, (_b = currentAuthor === null || currentAuthor === void 0 ? void 0 : currentAuthor.lastName) !== null && _b !== void 0 ? _b : '');
+    return quality;
 };
+const comparePoem = (a, b, title, author) => getPoemQuality(b, title, author) - getPoemQuality(a, title, author);
 exports.comparePoem = comparePoem;
 const searchPoems = (author, title) => __awaiter(void 0, void 0, void 0, function* () {
     console.time('searchPoems');
@@ -93,7 +99,7 @@ const searchPoems = (author, title) => __awaiter(void 0, void 0, void 0, functio
         ...acc,
         ...value.filter((value) => acc.filter((x) => x.author.firstName === value.author.firstName && x.author.lastName === value.author.lastName && x.title === value.title).length === 0),
     ], []);
-    res = res.sort((a, b) => comparePoem(a, b, title !== null && title !== void 0 ? title : '', author)).slice(0, 5);
+    res = res.sort((a, b) => comparePoem(a, b, title, author)).slice(0, 5);
     console.timeEnd('searchPoems');
     console.log(res.map((x) => `${x.author} - ${x.title}`));
     return res;

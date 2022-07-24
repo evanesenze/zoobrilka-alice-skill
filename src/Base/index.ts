@@ -46,11 +46,22 @@ const savePoem = async (poem: IPoem) => {
   poemsRef.child(String(poem.id)).update(poem);
 };
 
-const comparePoem = (a: IPoem, b: IPoem, title: string, author?: IAuthor): number => {
-  const poem1 = levenshtein.similarity(a.title, title) + levenshtein.similarity(a.author.firstName, author?.firstName ?? '') + levenshtein.similarity(a.author.lastName, author?.lastName ?? '');
-  const poem2 = levenshtein.similarity(b.title, title) + levenshtein.similarity(b.author.firstName, author?.firstName ?? '') + levenshtein.similarity(a.author.lastName, author?.lastName ?? '');
-  return poem2 - poem1;
+const getPoemQuality = (poem: IPoem, currentTitle?: string, currentAuthor?: IAuthor) => {
+  const {
+    author: { firstName, lastName },
+    title,
+  } = poem;
+  const titleRate = 1;
+  const firstNameRate = 2;
+  const lastNameRate = 3;
+  const quality =
+    titleRate * levenshtein.similarity(title, currentTitle ?? '') +
+    firstNameRate * levenshtein.similarity(firstName, currentAuthor?.firstName ?? '') +
+    lastNameRate * levenshtein.similarity(lastName, currentAuthor?.lastName ?? '');
+  return quality;
 };
+
+const comparePoem = (a: IPoem, b: IPoem, title?: string, author?: IAuthor): number => getPoemQuality(b, title, author) - getPoemQuality(a, title, author);
 
 const searchPoems = async (author?: IAuthor, title?: string) => {
   console.time('searchPoems');
@@ -91,7 +102,7 @@ const searchPoems = async (author?: IAuthor, title?: string) => {
     ],
     []
   );
-  res = res.sort((a, b) => comparePoem(a, b, title ?? '', author)).slice(0, 5);
+  res = res.sort((a, b) => comparePoem(a, b, title, author)).slice(0, 5);
   console.timeEnd('searchPoems');
   console.log(res.map((x) => `${x.author} - ${x.title}`));
   return res;

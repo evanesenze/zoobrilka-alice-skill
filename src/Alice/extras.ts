@@ -1,4 +1,4 @@
-import { CommandCallback, ISession, IStageContext, Reply } from 'yandex-dialogs-sdk';
+import { CommandCallback, ISession, IStageContext, Reply, Scene } from 'yandex-dialogs-sdk';
 import { IApiEntity, IApiEntityYandexFio } from 'yandex-dialogs-sdk/dist/api/nlu';
 import { CommandDeclaration } from 'yandex-dialogs-sdk/dist/command/command';
 import { TextReplyDeclaration } from 'yandex-dialogs-sdk/dist/reply/textReplyBuilder';
@@ -13,16 +13,18 @@ interface IApiEntityYandexFioNew extends IApiEntityYandexFio {
 
 const ROWS_COUNT = 2;
 
-const FIND_MENU_SCENE: SceneType = 'FIND_MENU_SCENE';
-const SELECT_LIST_SCENE: SceneType = 'SELECT_LIST_SCENE';
+// const FIND_MENU_SCENE: SceneType = 'FIND_MENU_SCENE';
+// const SELECT_LIST_SCENE: SceneType = 'SELECT_LIST_SCENE';
 const LEARN_SCENE: SceneType = 'LEARN_SCENE';
 const SET_AUTHOR_SCENE: SceneType = 'SET_AUTHOR_SCENE';
 const SET_TITLE_SCENE: SceneType = 'SET_TITLE_SCENE';
+const POEM_SCENE: SceneType = 'POEM_SCENE';
 
 const sceneNames: Record<SceneType, string> = {
   MENU: 'Меню',
-  FIND_MENU_SCENE: 'Поиске',
-  SELECT_LIST_SCENE: 'Выборе стиха',
+  POEM_SCENE: 'Просмтотре стиха',
+  // FIND_MENU_SCENE: 'Поиске',
+  // SELECT_LIST_SCENE: 'Выборе стиха',
   LEARN_SCENE: 'Зубрилке',
   SET_AUTHOR_SCENE: 'Выборе автора',
   SET_TITLE_SCENE: 'Выборе название',
@@ -35,6 +37,7 @@ const exitHandler: IHandlerType = [
     if (loggingIsEnable(ctx.session)) cleanLog(ctx.userId);
     cleanSceneHistory(ctx.session);
     deleteSelectListData(ctx.session);
+    deleteFindData(ctx.session);
     return Reply.text('Хорошо! Будет скучно - обращайся.', { end_session: true });
   },
 ];
@@ -42,10 +45,28 @@ const exitHandler: IHandlerType = [
 const backHandler: IHandlerType = [
   ['назад', 'вернись'],
   (ctx) => {
-    console.log(ctx.session);
+    const currentScene = getCurrentScene(ctx.session);
+    if (currentScene === 'SET_AUTHOR_SCENE') {
+      deleteFindData(ctx.session);
+    } else if (currentScene === 'SET_TITLE_SCENE') {
+      const findData = getFindData(ctx.session);
+      if (findData) saveFindData(ctx.session, { author: findData.author, title: '', poems: [], items: [] });
+    }
+    // else if (currentScene === 'SELECT_LIST_SCENE') {
+    //   deleteSelectListData(ctx.session);
+    //   const findData = getFindData(ctx.session);
+    //   if (findData) saveFindData(ctx.session, { author: findData.author, title: '', poems: [], items: [] });
+    // }
     const scene = removeSceneHistory(ctx.session);
-    ctx.enter(scene);
     const message = String(sample(sceneMessages[scene]));
+    // if (scene === 'SELECT_LIST_SCENE') {
+    //   const selectListData = getSelectListData(ctx.session);
+    //   if (selectListData) {
+    //     const text = selectListData.items.reduce((res, item) => (res += `\n${item}`), '\n');
+    //     message += text;
+    //   }
+    // }
+    ctx.enter(scene);
     return Reply.text(message);
   },
 ];
@@ -64,10 +85,11 @@ ${message}`);
 const sceneMessages: Record<SceneType, string[]> = {
   MENU: ['Меню текст'],
   LEARN_SCENE: ['Повторяй строчки стиха, чтобы двигаться дальше.'],
-  FIND_MENU_SCENE: ['Назови имя/фамилию автора или название стиха, чтобы начать поиск.'],
-  SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску"],
-  SET_AUTHOR_SCENE: [''],
-  SET_TITLE_SCENE: [''],
+  // FIND_MENU_SCENE: ['Назови имя/фамилию автора или название стиха, чтобы начать поиск.'],
+  // SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску"],
+  SET_AUTHOR_SCENE: ['Назови автора'],
+  SET_TITLE_SCENE: ['Скажи назание'],
+  POEM_SCENE: ['POEM_SCENE'],
 };
 
 const sceneHints: Record<SceneType, TextReplyDeclaration[]> = {
@@ -75,10 +97,11 @@ const sceneHints: Record<SceneType, TextReplyDeclaration[]> = {
     "Скажи 'Учить', чтобы продолжить учить.\nСкажи 'Найти', чтобы начать поиск.\nСкажи 'Стих дня', чтобы узнать стих дня.\nСкажи 'Помощь' в любом месте, чтобы получить помощь.\nСкажи 'Я устал', для завершения чата.",
   ],
   LEARN_SCENE: ["Повторяй строчки стиха, чтобы двигаться дальше.\nСкажи 'Продолжить', чтобы пропустить текущий шаг\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата."],
-  FIND_MENU_SCENE: ["Назови имя/фамилию автора или название стиха, чтобы начать поиск.\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата."],
-  SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата."],
-  SET_AUTHOR_SCENE: [''],
-  SET_TITLE_SCENE: [],
+  // FIND_MENU_SCENE: ["Назови имя/фамилию автора или название стиха, чтобы начать поиск.\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата."],
+  // SELECT_LIST_SCENE: ["Для выбора стиха, назови его номер или название.\nCкажи 'Поиск', чтобы вернуться к поиску\nСкажи 'Назад', чтобы вернуться назад.\nСкажи 'Я устал', для завершения чата."],
+  SET_AUTHOR_SCENE: ['Назови автора'],
+  SET_TITLE_SCENE: ['Скажи назание'],
+  POEM_SCENE: ['POEM_SCENE'],
 };
 
 const enableLogging = (session: ISession) => session.set('logging', true);
@@ -124,42 +147,33 @@ const getPoemText = (learnData: ILearnData) => {
   }
 };
 
-const extractTitleAndAuthor = (message: string, entities?: IApiEntity[]): { title: string; author?: IAuthor } => {
-  let author: IAuthor | undefined;
-  let title = message;
+const extractAuthor = (entities?: IApiEntity[]): IAuthor => {
   const names = entities?.filter((item) => item.type === 'YANDEX.FIO').map((item) => item as IApiEntityYandexFioNew);
-  if (names?.length) {
-    const namesCount = names.length - 1;
-    const name = names[namesCount];
-    if (names?.length) {
-      const firstName = `${name.value.first_name?.[0].toUpperCase() ?? ''}${name.value.first_name?.slice(1).toLocaleLowerCase() ?? ''}`;
-      const lastName = `${name.value.last_name?.[0].toUpperCase() ?? ''}${name.value.last_name?.slice(1).toLocaleLowerCase() ?? ''}`;
-      author = { firstName, lastName };
-      const words = title.split(' ');
-      words.splice(name.tokens.start, name.tokens.end - name.tokens.start);
-      title = words.join(' ');
-    }
-  }
-  return { author, title };
+  if (!names?.length) return { lastName: '', firstName: '' } as IAuthor;
+  const namesCount = names.length - 1;
+  const name = names[namesCount];
+  const firstName = `${name.value.first_name?.[0].toUpperCase() ?? ''}${name.value.first_name?.slice(1).toLocaleLowerCase() ?? ''}`;
+  const lastName = `${name.value.last_name?.[0].toUpperCase() ?? ''}${name.value.last_name?.slice(1).toLocaleLowerCase() ?? ''}`;
+  return { firstName, lastName };
 };
 
-const confirmSelectPoem = (ctx: IStageContext, selectedPoem: IPoem, selectListData: ISelectListData, isDayPoem?: boolean) => {
-  const blocksData = getBlocksData(selectedPoem.text);
-  const lastBlockIndex = blocksData.length - 1;
-  const lastBlockRows = blocksData[lastBlockIndex];
-  const lastBlockRowIndex = lastBlockRows.length - 1;
-  const newLearnData = getNewLearnData(selectedPoem, 'full', lastBlockIndex, lastBlockRowIndex);
-  if (!newLearnData) {
-    ctx.leave();
-    return Reply.text('Вышли назад');
-  }
-  const text = getPoemText(newLearnData);
-  saveSelectListData(ctx.session, { ...selectListData, selectedPoem });
-  if (isDayPoem) return Reply.text(`Стих дня: ${getAuthorName(selectedPoem.author)} - ${selectedPoem.title}\n\n${text}\nБудем учить его?`);
-  return Reply.text(`Ты выбрал ${getAuthorName(selectedPoem.author)} - ${selectedPoem.title}\n\n${text}\nУчим его?`);
-};
+// const confirmSelectPoem = (ctx: IStageContext, selectedPoem: IPoem, selectListData: ISelectListData, isDayPoem?: boolean) => {
+//   const blocksData = getBlocksData(selectedPoem.text);
+//   const lastBlockIndex = blocksData.length - 1;
+//   const lastBlockRows = blocksData[lastBlockIndex];
+//   const lastBlockRowIndex = lastBlockRows.length - 1;
+//   const newLearnData = getNewLearnData(selectedPoem, 'full', lastBlockIndex, lastBlockRowIndex);
+//   if (!newLearnData) {
+//     ctx.leave();
+//     return Reply.text('Вышли назад');
+//   }
+//   const text = getPoemText(newLearnData);
+//   saveSelectListData(ctx.session, { ...selectListData, selectedPoem });
+//   if (isDayPoem) return Reply.text(`Стих дня: ${getAuthorName(selectedPoem.author)} - ${selectedPoem.title}\n\n${text}\nБудем учить его?`);
+//   return Reply.text(`Ты выбрал ${getAuthorName(selectedPoem.author)} - ${selectedPoem.title}\n\n${text}\nУчим его?`);
+// };
 
-const getAuthorName = (author?: IAuthor): string => `${author?.firstName ?? ''} ${author?.lastName ?? ''}`.trim();
+const getAuthorName = (author?: IAuthor, short?: boolean): string => `${(short && author?.firstName ? author?.firstName[0] : author?.firstName) ?? ''} ${author?.lastName ?? ''}`.trim();
 
 const getAllSessionData = (session?: ISession) => {
   if (!session)
@@ -168,8 +182,9 @@ const getAllSessionData = (session?: ISession) => {
     };
   const functions: Record<string, (session: ISession) => unknown> = {
     currentScene: getCurrentScene,
-    sceneHistory: (session) => session.get('sceneHistory') || [],
-    selectListData: getSelectListData,
+    sceneHistory: (session) => session.get('sceneHistory'),
+    findData: getFindData,
+    // selectListData: getSelectListData,
     learnData: getOldLearnData,
   };
   const res: Record<string, any> = Object.entries(functions).reduce((acc, [name, func]) => ({ ...acc, [name]: func(session) ?? null }), {});
@@ -178,7 +193,7 @@ const getAllSessionData = (session?: ISession) => {
 
 const deleteLearnData = (session: ISession) => session.delete('learnData');
 
-const getOldLearnData = (session: ISession): ILearnData | undefined => session.get<ILearnData>('learnData');
+const getOldLearnData = (session: ISession) => session.get<ILearnData | undefined>('learnData');
 
 const getBlocksData = (text: string) => text.split('\n\n').map((item) => item.split('\n'));
 
@@ -186,7 +201,9 @@ const getNewLearnData = (poem: IPoem, textType: PoemTextType, currentBlockIndex 
   const blocksData = getBlocksData(poem.text);
   const blocksCount = blocksData.length;
   if (currentBlockIndex > blocksCount - 1) return null;
+  if (currentBlockIndex < 0) currentBlockIndex = blocksData.length - 1;
   const rows = blocksData[currentBlockIndex];
+  if (currentRowIndex < 0) currentRowIndex = rows.length - 1;
   const rowsCount = Math.ceil(rows.length / ROWS_COUNT);
   const learnedRows = [0];
   return {
@@ -218,13 +235,13 @@ const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
     if (currentBlock.isLast) {
       console.log('currentBlock is last');
       if (!poemСomplited) {
-        const text = 'Повторите стих целиком:\n' + getPoemText({ ...learnData, textType: 'full' });
+        const text = 'Повтори стих целиком.Скажите "Дальше", чтобы закончить учить\n\n' + getPoemText({ ...learnData, textType: 'full' });
         saveLearnData(ctx.session, { ...learnData, poemСomplited: true });
-        return Reply.text(text);
+        return Reply.text(text, { end_session: true });
       } else {
         ctx.leave();
         deleteLearnData(ctx.session);
-        return Reply.text('Поздравляю! Вы выучили новый стих');
+        return Reply.text('Поздравляю! Ты выучил новый стих');
       }
     }
     console.log('currentRow is last');
@@ -233,13 +250,17 @@ const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
       console.log('currentBlock is not complited');
       const nextLearnData = { ...learnData, currentBlock, textType: 'full' } as ILearnData;
       saveLearnData(ctx.session, nextLearnData);
-      const text = 'Молодец! Блок закончен, теперь повтори его полностью:\n\n' + getPoemText(nextLearnData);
-      return Reply.text(text);
+      const text = 'Молодец! Блок закончен, теперь повтори его полностью.\nСкажи "Дальше", чтобы продолжить учить\n\n' + getPoemText(nextLearnData);
+      return Reply.text(text, { end_session: true });
     } else {
-      const tts = `Скажите "Дальше", чтобы продолжить.
-  Скажить "Повторить стих", чтобы повторить весь стих.
-  Скажите "Повторить блок", чтобы повторить последний блок.`;
-      return Reply.text({ text: 'Двигаемся дальше, потворяем блок или весь стих?', tts });
+      const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index + 1, 0);
+      if (!nextLearnData) {
+        ctx.enter('');
+        return Reply.text('вернулись в меню');
+      }
+      saveLearnData(ctx.session, nextLearnData);
+      const text = 'Повтори новую строку.\nСкажи "Дальше", чтобы продолжить учить\n\n' + getPoemText(nextLearnData);
+      return Reply.text(text, { end_session: true });
     }
   } else {
     console.log('next row');
@@ -251,28 +272,34 @@ const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
         return Reply.text('Переход в меню');
       }
       saveLearnData(ctx.session, nextLearnData);
-      const text = 'Повторите строку:\n\n' + getPoemText(nextLearnData);
-      return Reply.text(text);
+      const text = 'Повтори новую строку.\nСкажи "Дальше", чтобы продолжить учить\n\n' + getPoemText(nextLearnData);
+      return Reply.text(text, { end_session: true });
     } else {
       currentBlock.learnedRows.push(currentRow.index);
       console.log('repeat block');
       const nextLearnData = { ...learnData, currentBlock, textType: 'block' } as ILearnData;
       saveLearnData(ctx.session, nextLearnData);
-      const text = 'Повторите уже выученые строки:\n\n' + getPoemText(nextLearnData);
-      return Reply.text(text);
+      const text = 'Повтори уже выученые строки.\nСкажи "Дальше", чтобы продолжить учить\n\n' + getPoemText(nextLearnData);
+      return Reply.text(text, { end_session: true });
     }
   }
 };
 
+const getFindData = (session: ISession) => session.get<IFindData | undefined>('findData');
+
+const saveFindData = (session: ISession, data: IFindData) => session.set('findData', data);
+
+const deleteFindData = (session: ISession) => session.delete('findData');
+
 const deleteSelectListData = (session: ISession) => session.delete('selectListData');
 
-const getSelectListData = (session: ISession): ISelectListData => session.get<ISelectListData>('selectListData');
+// const getSelectListData = (session: ISession): ISelectListData => session.get<ISelectListData>('selectListData');
 
-const saveSelectListData = (session: ISession, newData: ISelectListData) => session.set('selectListData', newData); // !
+// const saveSelectListData = (session: ISession, newData: ISelectListData) => session.set('selectListData', newData); // !
 
 export {
-  FIND_MENU_SCENE,
-  SELECT_LIST_SCENE,
+  // SELECT_LIST_SCENE,
+  POEM_SCENE,
   SET_AUTHOR_SCENE,
   SET_TITLE_SCENE,
   LEARN_SCENE,
@@ -281,8 +308,8 @@ export {
   sceneHints,
   sceneMessages,
   helpHandler,
-  extractTitleAndAuthor,
-  confirmSelectPoem,
+  extractAuthor,
+  // confirmSelectPoem,
   getAuthorName,
   addSceneHistory,
   getPoemText,
@@ -294,8 +321,12 @@ export {
   getNewLearnData,
   saveLearnData,
   goLearnNext,
-  getSelectListData,
+  // getSelectListData,
   deleteSelectListData,
-  saveSelectListData,
+  // saveSelectListData,
   removeSceneHistory,
+  getFindData,
+  saveFindData,
+  deleteFindData,
+  cleanSceneHistory,
 };

@@ -13,16 +13,17 @@ exports.alice = void 0;
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
 const extras_1 = require("./extras");
 const Base_1 = require("../Base");
-const findMenuScene_1 = require("./findMenuScene");
 const learnScene_1 = require("./learnScene");
-const selectListScene_1 = require("./selectListScene");
+const poemScene_1 = require("./poemScene");
+// import { atSelectList } from './selectListScene';
+const setAuthorScene_1 = require("./setAuthorScene");
+const setTitleScene_1 = require("./setTitleScene");
 const lodash_1 = require("lodash");
 const alice = new yandex_dialogs_sdk_1.Alice();
 exports.alice = alice;
 alice.command('', (ctx) => {
     const c = ctx;
     const learnData = (0, extras_1.getOldLearnData)(c.session);
-    console.log(learnData);
     return yandex_dialogs_sdk_1.Reply.text(`Добро пожаловать в "Зубрилку".
 ${(0, lodash_1.sample)(['Здесь ты можешь выучить стихотворение.', 'Я помогу тебе выучить стихотворение.'])}${learnData ? "\nСкажи 'Учить', чтобы продолжить учить." : ''}
 Скажи 'Найти', чтобы начать поиск.
@@ -30,18 +31,18 @@ ${(0, lodash_1.sample)(['Здесь ты можешь выучить стихо�
 });
 alice.command(/новый|новое|другое|найти|поиск|искать/gi, (ctx) => {
     const c = ctx;
-    (0, extras_1.addSceneHistory)(c.session, extras_1.FIND_MENU_SCENE);
-    c.enter(extras_1.FIND_MENU_SCENE);
-    const message = String((0, lodash_1.sample)(extras_1.sceneMessages['FIND_MENU_SCENE']));
+    (0, extras_1.addSceneHistory)(c.session, extras_1.SET_AUTHOR_SCENE);
+    c.enter(extras_1.SET_AUTHOR_SCENE);
+    const message = String((0, lodash_1.sample)(extras_1.sceneMessages[extras_1.SET_AUTHOR_SCENE]));
     return yandex_dialogs_sdk_1.Reply.text(message);
 });
 alice.command(/учить|продолжи/gi, (ctx) => {
     const c = ctx;
     const learnData = (0, extras_1.getOldLearnData)(c.session);
     if (!learnData) {
-        (0, extras_1.addSceneHistory)(c.session, extras_1.FIND_MENU_SCENE);
-        c.enter(extras_1.FIND_MENU_SCENE);
-        return yandex_dialogs_sdk_1.Reply.text('Ты ещё не начал учить стихотворение с "Зубрилкой".\nНазови имя/фамилию автора или название стиха, чтобы начать поиск');
+        (0, extras_1.addSceneHistory)(c.session, extras_1.SET_AUTHOR_SCENE);
+        c.enter(extras_1.SET_AUTHOR_SCENE);
+        return yandex_dialogs_sdk_1.Reply.text('Ты ещё не начал учить стихотворение с "Зубрилкой".\nДавай найдем новый стих. Назови автора');
     }
     (0, extras_1.addSceneHistory)(c.session, extras_1.LEARN_SCENE);
     const { poem } = learnData;
@@ -60,9 +61,15 @@ alice.command(/стих дня/gi, (ctx) => __awaiter(void 0, void 0, void 0, fu
     const poem = yield (0, Base_1.getTodayPoem)();
     if (!poem)
         return yandex_dialogs_sdk_1.Reply.text('К сожалению, сегодня не день стихов');
-    (0, extras_1.addSceneHistory)(c.session, extras_1.SELECT_LIST_SCENE);
-    c.enter(extras_1.SELECT_LIST_SCENE);
-    return (0, extras_1.confirmSelectPoem)(c, poem, { items: [poem] }, true);
+    (0, extras_1.addSceneHistory)(c.session, extras_1.POEM_SCENE);
+    c.enter(extras_1.POEM_SCENE);
+    const text = `Стих дня ${(0, extras_1.getAuthorName)(poem.author)} - ${poem.title}.\n\n`;
+    (0, extras_1.saveFindData)(c.session, { author: poem.author, items: [], poems: [poem], title: poem.title, selectedPoem: poem });
+    const newLearnData = (0, extras_1.getNewLearnData)(poem, 'full', -1, -1);
+    if (!newLearnData)
+        return yandex_dialogs_sdk_1.Reply.text('К сожалению, сегодня не день стихов');
+    const poemText = (0, extras_1.getPoemText)(newLearnData);
+    return yandex_dialogs_sdk_1.Reply.text({ text: text + poemText, tts: text + 'Скажи "Прочитай", чтобы я его озвучил.\nСкажи "Учить", чтобы начать учить.\nСкажи "Поиск", чтобы найти другой стих.' });
 }));
 alice.command('лог', (ctx) => {
     const c = ctx;
@@ -85,5 +92,7 @@ alice.on('response', (ctx) => {
 });
 // registerLearnScene(alice, LEARN_SCENE);
 alice.registerScene(learnScene_1.atLearn);
-alice.registerScene(findMenuScene_1.atFindMenu);
-alice.registerScene(selectListScene_1.atSelectList);
+alice.registerScene(poemScene_1.atPoemScene);
+// alice.registerScene(atSelectList);
+alice.registerScene(setAuthorScene_1.atSetAuthor);
+alice.registerScene(setTitleScene_1.atSetTitle);

@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node ./dist/index.js",
     "dev": "lite-server dist/ --port 3001",
-    "push": "git push heroku master"
+    "push": "git push heroku master",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
     "cors": "^2.8.5",
