@@ -336,6 +336,7 @@
                   "type": "object",
                   "properties": {
                     "userId": { "type": "string" },
+                    "rating": { "type": "integer" },
                     "records": {
                       "type": "array",
                       "items": {

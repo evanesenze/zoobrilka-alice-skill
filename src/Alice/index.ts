@@ -22,7 +22,6 @@ import { getTodayPoem, saveLog } from '../Base';
 import { CommandDeclaration } from 'yandex-dialogs-sdk/dist/command/command';
 import { atLearn } from './learnScene';
 import { atPoemScene } from './poemScene';
-// import { atSelectList } from './selectListScene';
 import { atSetAuthor } from './setAuthorScene';
 import { atSetTitle } from './setTitleScene';
 import { sample } from 'lodash';
@@ -58,7 +57,7 @@ alice.command(/учить|продолжи/gi, (ctx) => {
   const { poem } = learnData;
   const poemText = getPoemText(learnData);
   const text = `Продолжаем учить стих ${getAuthorName(poem.author)} - ${poem.title}.
-Повтори текст:
+Скажи 'Дальше', чтобы перейти к следующей строке.
 
 ${poemText}`;
   c.enter(LEARN_SCENE);
@@ -108,10 +107,8 @@ alice.on('response', (ctx) => {
   saveLog(c.userId, getAllSessionData(c.session));
 });
 
-// registerLearnScene(alice, LEARN_SCENE);
 alice.registerScene(atLearn);
 alice.registerScene(atPoemScene);
-// alice.registerScene(atSelectList);
 alice.registerScene(atSetAuthor);
 alice.registerScene(atSetTitle);
 

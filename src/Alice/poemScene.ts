@@ -33,7 +33,7 @@ atPoemScene.command(/прочитай/gi, (ctx) => {
   const newLearnData = getNewLearnData(selectedPoem, 'full', -1, -1);
   if (!newLearnData) return Reply.text('Сейчас вы не можете это сделать');
   const poemText = getPoemText(newLearnData) + '.Что хотите делать дальше?';
-  return Reply.text('', { tts: poemText });
+  return Reply.text({ text: '', tts: poemText });
 });
 
 atPoemScene.command(/учить/gi, (ctx) => {
@@ -47,7 +47,7 @@ atPoemScene.command(/учить/gi, (ctx) => {
   saveLearnData(ctx.session, learnData);
   addSceneHistory(ctx.session, LEARN_SCENE);
   ctx.enter(LEARN_SCENE);
-  return Reply.text('Повтори строку.\nСкажи "Дальше", чтобы продолжить учить\n\n' + text, { end_session: true });
+  return Reply.text('Повтори строку.\nСкажи "Дальше", чтобы перейти к следующей строке\n\n' + text, { end_session: true });
 });
 
 atPoemScene.command(/поиск/gi, (ctx) => {
@@ -55,7 +55,7 @@ atPoemScene.command(/поиск/gi, (ctx) => {
   const text = String(sample(sceneMessages[SET_AUTHOR_SCENE]));
   cleanSceneHistory(ctx.session);
   addSceneHistory(ctx.session, SET_AUTHOR_SCENE);
-  ctx.enter(SET_AUTHOR_SCENE); // !!
+  ctx.enter(SET_AUTHOR_SCENE);
   return Reply.text(text);
 });
 

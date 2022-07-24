@@ -220,16 +220,16 @@ const getUserRecords = async (userId: string, poemId?: string): Promise<IPoemRec
   return getSortedRecords(Object.values(user.records), poemId);
 };
 
-const getAllUserRecords = async (offset: number, poemId?: string): Promise<{ userId: string; records: IPoemRecord[] }[]> => {
+const getAllUserRecords = async (offset: number, poemId?: string): Promise<{ userId: string; userRating: number; records: IPoemRecord[] }[]> => {
   const usersData = (await usersRef.once('value')).toJSON() as Record<string, IUser> | null;
   if (!usersData) return [];
   const users = Object.values(usersData)
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .slice(offset, offset + 10);
-  const usersRecords: { userId: string; records: IPoemRecord[] }[] = [];
+  const usersRecords: { userId: string; userRating: number; records: IPoemRecord[] }[] = [];
   for (const user of users) {
     if (!user.records) continue;
-    usersRecords.push({ userId: user.id, records: await getSortedRecords(Object.values(user.records), poemId) });
+    usersRecords.push({ userId: user.id, userRating: user.rating ?? 0, records: await getSortedRecords(Object.values(user.records), poemId) });
   }
   return usersRecords;
 };
