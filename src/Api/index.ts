@@ -16,8 +16,8 @@ import { serve, setup } from 'swagger-ui-express';
 import { alice } from '../Alice';
 import cors from 'cors';
 import fileupload from 'express-fileupload';
-// import swaggerDoc from './swagger.json';
-import swaggerDoc from './swagger.dev.json';
+import swaggerDoc from './swagger.json';
+// import swaggerDoc from './swagger.dev.json';
 
 const app = express();
 
