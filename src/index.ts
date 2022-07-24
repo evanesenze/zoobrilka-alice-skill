@@ -11,7 +11,7 @@ createIoServer(server);
 
 server.listen(port, () => {
   console.log('server running on port ' + port);
-  // reshuffleTodayPoemId();
+  reshuffleTodayPoemId();
 });
 
 export { server };
