@@ -12,7 +12,8 @@ atLearn.command(/повтори.*стих/gi, (ctx) => {
     console.log('repeat poem');
     const newLearnData = Object.assign(Object.assign({}, learnData), { textType: 'full' });
     (0, extras_1.saveLearnData)(ctx.session, newLearnData);
-    return yandex_dialogs_sdk_1.Reply.text((0, extras_1.getPoemText)(newLearnData));
+    const text = (0, extras_1.getPoemText)(newLearnData);
+    return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
@@ -21,14 +22,16 @@ atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
     console.log('repeat poem');
     const newLearnData = Object.assign(Object.assign({}, learnData), { textType: 'block' });
     (0, extras_1.saveLearnData)(ctx.session, newLearnData);
-    return yandex_dialogs_sdk_1.Reply.text((0, extras_1.getPoemText)(newLearnData));
+    const text = (0, extras_1.getPoemText)(newLearnData);
+    return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 atLearn.command(/повтори/, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     if (!learnData)
         return (0, extras_1.exitWithError)(ctx, 'learnData not found');
     console.log('repeat');
-    return yandex_dialogs_sdk_1.Reply.text((0, extras_1.getPoemText)(learnData));
+    const text = (0, extras_1.getPoemText)(learnData);
+    return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 atLearn.command(...extras_1.exitHandler);
 atLearn.command(...extras_1.backHandler);

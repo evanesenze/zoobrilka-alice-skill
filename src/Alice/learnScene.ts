@@ -9,7 +9,8 @@ atLearn.command(/повтори.*стих/gi, (ctx) => {
   console.log('repeat poem');
   const newLearnData: ILearnData = { ...learnData, textType: 'full' };
   saveLearnData(ctx.session, newLearnData);
-  return Reply.text(getPoemText(newLearnData));
+  const text = getPoemText(newLearnData);
+  return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 
 atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
@@ -18,14 +19,16 @@ atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
   console.log('repeat poem');
   const newLearnData: ILearnData = { ...learnData, textType: 'block' };
   saveLearnData(ctx.session, newLearnData);
-  return Reply.text(getPoemText(newLearnData));
+  const text = getPoemText(newLearnData);
+  return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 
 atLearn.command(/повтори/, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   if (!learnData) return exitWithError(ctx, 'learnData not found');
   console.log('repeat');
-  return Reply.text(getPoemText(learnData));
+  const text = getPoemText(learnData);
+  return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 
 atLearn.command(...exitHandler);

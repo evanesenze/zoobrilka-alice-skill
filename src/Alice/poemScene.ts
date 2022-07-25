@@ -30,7 +30,7 @@ atPoemScene.command(/прочитай|читай|прочитать/, (ctx) => {
   const findData = getFindData(ctx.session);
   if (!findData) return exitWithError(ctx, 'findData not found');
   const { selectedPoemId, poems } = findData;
-  if (!selectedPoemId) return exitWithError(ctx, 'selectedPoemId not found');
+  if (selectedPoemId === undefined) return exitWithError(ctx, 'selectedPoemId not found');
   const newLearnData = getNewLearnData(poems[selectedPoemId], 'full', -1, -1);
   if (!newLearnData) return exitWithError(ctx, 'newLearnData not found');
   const poemText = getPoemText(newLearnData);
