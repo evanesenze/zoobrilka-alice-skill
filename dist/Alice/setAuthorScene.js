@@ -25,9 +25,9 @@ atSetAuthor.command(/дальше|далее/gi, (ctx) => {
     ctx.enter(extras_1.SET_TITLE_SCENE);
     return yandex_dialogs_sdk_1.Reply.text(`Автор ${(0, extras_1.getAuthorName)(findData.author)} задан. Теперь скажи название.`);
 });
-atSetAuthor.command(/пропустить/gi, (ctx) => {
+atSetAuthor.command(/пропусти/gi, (ctx) => {
     (0, extras_1.addSceneHistory)(ctx.session, extras_1.SET_TITLE_SCENE);
-    (0, extras_1.saveFindData)(ctx.session, { author: { firstName: '', lastName: '' }, title: '', poems: [], items: [] });
+    (0, extras_1.saveFindData)(ctx.session, { author: null, title: '', poems: [], items: [] });
     ctx.enter(extras_1.SET_TITLE_SCENE);
     return yandex_dialogs_sdk_1.Reply.text('Скажи название.');
 });

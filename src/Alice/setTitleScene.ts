@@ -1,4 +1,4 @@
-import { POEM_SCENE, SET_TITLE_SCENE, addSceneHistory, backHandler, exitHandler, getAuthorName, getFindData, getNewLearnData, getPoemText, helpHandler, saveFindData } from './extras';
+import { POEM_SCENE, SET_TITLE_SCENE, addSceneHistory, backHandler, exitHandler, exitWithError, getAuthorName, getFindData, getNewLearnData, getPoemText, helpHandler, saveFindData } from './extras';
 import { Reply, Scene } from 'yandex-dialogs-sdk';
 import { searchPoems } from '../Base';
 
@@ -13,7 +13,7 @@ atSetTitle.command(...helpHandler);
 atSetTitle.any(async (ctx) => {
   const entities = ctx.nlu?.entities;
   const findData = getFindData(ctx.session);
-  if (!findData) return Reply.text('Сейчас вы не можете это сделать');
+  if (!findData) return exitWithError(ctx, 'findData not found');
   if (entities?.length && findData.items.length) {
     const numbers = entities.filter((item) => item.type === 'YANDEX.NUMBER');
     if (numbers.length) {

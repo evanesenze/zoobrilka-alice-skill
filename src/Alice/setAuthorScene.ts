@@ -17,9 +17,9 @@ atSetAuthor.command(/дальше|далее/gi, (ctx) => {
   return Reply.text(`Автор ${getAuthorName(findData.author)} задан. Теперь скажи название.`);
 });
 
-atSetAuthor.command(/пропустить/gi, (ctx) => {
+atSetAuthor.command(/пропусти/gi, (ctx) => {
   addSceneHistory(ctx.session, SET_TITLE_SCENE);
-  saveFindData(ctx.session, { author: { firstName: '', lastName: '' }, title: '', poems: [], items: [] });
+  saveFindData(ctx.session, { author: null, title: '', poems: [], items: [] });
   ctx.enter(SET_TITLE_SCENE);
   return Reply.text('Скажи название.');
 });

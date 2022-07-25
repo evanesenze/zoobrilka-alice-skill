@@ -23,7 +23,7 @@ atSetTitle.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const entities = (_a = ctx.nlu) === null || _a === void 0 ? void 0 : _a.entities;
     const findData = (0, extras_1.getFindData)(ctx.session);
     if (!findData)
-        return yandex_dialogs_sdk_1.Reply.text('Сейчас вы не можете это сделать');
+        return (0, extras_1.exitWithError)(ctx, 'findData not found');
     if ((entities === null || entities === void 0 ? void 0 : entities.length) && findData.items.length) {
         const numbers = entities.filter((item) => item.type === 'YANDEX.NUMBER');
         if (numbers.length) {

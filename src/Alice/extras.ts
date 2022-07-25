@@ -152,9 +152,9 @@ const getAllSessionData = (session?: ISession) => {
     };
   const functions: Record<string, (session: ISession) => unknown> = {
     currentScene: getCurrentScene,
+    errorsList: getErrorsList,
     sceneHistory: (session) => session.get('sceneHistory'),
     findData: getFindData,
-    // selectListData: getSelectListData,
     learnData: getOldLearnData,
   };
   const res: Record<string, any> = Object.entries(functions).reduce((acc, [name, func]) => ({ ...acc, [name]: func(session) ?? null }), {});
@@ -266,6 +266,23 @@ const deleteFindData = (session: ISession) => session.delete('findData');
 
 const deleteSelectListData = (session: ISession) => session.delete('selectListData');
 
+const getErrorsList = (session: ISession): unknown[] => session.get<unknown[]>('errorsList') || [];
+
+const saveErrorsList = (session: ISession, errorsList: unknown[]) => session.set('errorsList', errorsList);
+
+const updateErrorsList = (session: ISession, error: unknown) => {
+  const errors = getErrorsList(session);
+  errors.push(error);
+  saveErrorsList(session, errors);
+};
+
+const exitWithError = (ctx: IStageContext, error: unknown) => {
+  updateErrorsList(ctx.session, error);
+  const messages: string[] = ['Сейчас вы не можете это сделать'];
+  const message = String(sample(messages));
+  return Reply.text(message);
+};
+
 export {
   POEM_SCENE,
   SET_AUTHOR_SCENE,
@@ -277,7 +294,7 @@ export {
   sceneMessages,
   helpHandler,
   extractAuthor,
-  // confirmSelectPoem,
+  exitWithError,
   getAuthorName,
   addSceneHistory,
   getPoemText,
@@ -289,9 +306,7 @@ export {
   getNewLearnData,
   saveLearnData,
   goLearnNext,
-  // getSelectListData,
   deleteSelectListData,
-  // saveSelectListData,
   removeSceneHistory,
   getFindData,
   saveFindData,

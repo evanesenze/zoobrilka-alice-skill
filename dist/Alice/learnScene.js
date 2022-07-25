@@ -8,7 +8,7 @@ exports.atLearn = atLearn;
 atLearn.command(/повтори.*стих/gi, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     if (!learnData)
-        return yandex_dialogs_sdk_1.Reply.text('Вы не можете этого сделать');
+        return (0, extras_1.exitWithError)(ctx, 'learnData not found');
     console.log('repeat poem');
     const newLearnData = Object.assign(Object.assign({}, learnData), { textType: 'full' });
     (0, extras_1.saveLearnData)(ctx.session, newLearnData);
@@ -17,7 +17,7 @@ atLearn.command(/повтори.*стих/gi, (ctx) => {
 atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     if (!learnData)
-        return yandex_dialogs_sdk_1.Reply.text('Вы не можете этого сделать');
+        return (0, extras_1.exitWithError)(ctx, 'learnData not found');
     console.log('repeat poem');
     const newLearnData = Object.assign(Object.assign({}, learnData), { textType: 'block' });
     (0, extras_1.saveLearnData)(ctx.session, newLearnData);
@@ -26,7 +26,7 @@ atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
 atLearn.command(/повтори/, (ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     if (!learnData)
-        return yandex_dialogs_sdk_1.Reply.text('Вы не можете этого сделать');
+        return (0, extras_1.exitWithError)(ctx, 'learnData not found');
     console.log('repeat');
     return yandex_dialogs_sdk_1.Reply.text((0, extras_1.getPoemText)(learnData));
 });
@@ -36,6 +36,6 @@ atLearn.command(...extras_1.helpHandler);
 atLearn.any((ctx) => {
     const learnData = (0, extras_1.getOldLearnData)(ctx.session);
     if (!learnData)
-        return yandex_dialogs_sdk_1.Reply.text('Вы не можете этого сделать');
+        return (0, extras_1.exitWithError)(ctx, 'learnData not found');
     return (0, extras_1.goLearnNext)(ctx, learnData);
 });

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cleanSceneHistory = exports.deleteFindData = exports.saveFindData = exports.getFindData = exports.removeSceneHistory = exports.deleteSelectListData = exports.goLearnNext = exports.saveLearnData = exports.getNewLearnData = exports.getOldLearnData = exports.loggingIsEnable = exports.getCurrentScene = exports.getAllSessionData = exports.enableLogging = exports.getPoemText = exports.addSceneHistory = exports.getAuthorName = exports.extractAuthor = exports.helpHandler = exports.sceneMessages = exports.sceneHints = exports.backHandler = exports.exitHandler = exports.LEARN_SCENE = exports.SET_TITLE_SCENE = exports.SET_AUTHOR_SCENE = exports.POEM_SCENE = void 0;
+exports.cleanSceneHistory = exports.deleteFindData = exports.saveFindData = exports.getFindData = exports.removeSceneHistory = exports.deleteSelectListData = exports.goLearnNext = exports.saveLearnData = exports.getNewLearnData = exports.getOldLearnData = exports.loggingIsEnable = exports.getCurrentScene = exports.getAllSessionData = exports.enableLogging = exports.getPoemText = exports.addSceneHistory = exports.getAuthorName = exports.exitWithError = exports.extractAuthor = exports.helpHandler = exports.sceneMessages = exports.sceneHints = exports.backHandler = exports.exitHandler = exports.LEARN_SCENE = exports.SET_TITLE_SCENE = exports.SET_AUTHOR_SCENE = exports.POEM_SCENE = void 0;
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
 const Base_1 = require("../Base");
 const lodash_1 = require("lodash");
@@ -155,9 +155,9 @@ const getAllSessionData = (session) => {
         };
     const functions = {
         currentScene: getCurrentScene,
+        errorsList: getErrorsList,
         sceneHistory: (session) => session.get('sceneHistory'),
         findData: getFindData,
-        // selectListData: getSelectListData,
         learnData: getOldLearnData,
     };
     const res = Object.entries(functions).reduce((acc, [name, func]) => { var _a; return (Object.assign(Object.assign({}, acc), { [name]: (_a = func(session)) !== null && _a !== void 0 ? _a : null })); }, {});
@@ -274,3 +274,17 @@ const deleteFindData = (session) => session.delete('findData');
 exports.deleteFindData = deleteFindData;
 const deleteSelectListData = (session) => session.delete('selectListData');
 exports.deleteSelectListData = deleteSelectListData;
+const getErrorsList = (session) => session.get('errorsList') || [];
+const saveErrorsList = (session, errorsList) => session.set('errorsList', errorsList);
+const updateErrorsList = (session, error) => {
+    const errors = getErrorsList(session);
+    errors.push(error);
+    saveErrorsList(session, errors);
+};
+const exitWithError = (ctx, error) => {
+    updateErrorsList(ctx.session, error);
+    const messages = ['Сейчас вы не можете это сделать'];
+    const message = String((0, lodash_1.sample)(messages));
+    return yandex_dialogs_sdk_1.Reply.text(message);
+};
+exports.exitWithError = exitWithError;
