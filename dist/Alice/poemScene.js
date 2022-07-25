@@ -33,7 +33,7 @@ atPoemScene.command(/начать/, (ctx) => {
     if (!findData)
         return (0, extras_1.exitWithError)(ctx, 'findData not found');
     const { selectedPoemId, poems } = findData;
-    if (!selectedPoemId)
+    if (selectedPoemId === undefined)
         return (0, extras_1.exitWithError)(ctx, 'selectedPoemId not found');
     const learnData = (0, extras_1.getNewLearnData)(poems[selectedPoemId], 'row');
     if (!learnData)
