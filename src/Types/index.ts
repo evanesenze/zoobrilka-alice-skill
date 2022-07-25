@@ -29,6 +29,13 @@ interface IPoemRecord {
 
 interface IUser {
   id: string;
+  login: string;
+  displayName: string;
+  firstName: string;
+  lastName: string;
+  realName: string;
+  sex: string;
+  birthday: string;
   records?: Record<string, string>;
   rating?: number;
 }
@@ -69,3 +76,25 @@ interface IFindData {
   items: string[];
   selectedPoemId?: number;
 }
+
+interface IOauthTokenResponse {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+  token_type: string;
+}
+
+interface IOauthUserInfoResponse {
+  id: string;
+  login: string;
+  display_name: string;
+  first_name: string;
+  last_name: string;
+  real_name: string;
+  sex: string;
+  birthday: string;
+  client_id: string;
+  is_avatar_empty: boolean;
+}
+
+type IResponse<T> = Promise<{ error?: string; response?: T }>;

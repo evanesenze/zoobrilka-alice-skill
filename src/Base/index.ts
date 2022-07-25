@@ -19,7 +19,6 @@ const usersRef = base.ref('users');
 const recordsRef = base.ref('records');
 const logsRef = base.ref('logs');
 
-// eslint-disable-next-line prefer-const
 let todayPoemId = '0';
 
 const saveLog = async (id: string, log: unknown) => logsRef.child(id).push(log);
@@ -275,6 +274,8 @@ export {
   getPoemRecord,
   setPoemRecordScore,
   getUserRecords,
+  getUser,
   getAllUserRecords,
   reshuffleTodayPoemId,
+  updateUser,
 };

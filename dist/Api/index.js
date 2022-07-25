@@ -36,16 +36,38 @@ const Base_1 = require("../Base");
 const express_1 = __importStar(require("express"));
 const swagger_ui_express_1 = require("swagger-ui-express");
 const Alice_1 = require("../Alice");
+const axios_1 = __importDefault(require("axios"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const express_fileupload_1 = __importDefault(require("express-fileupload"));
 const swagger_json_1 = __importDefault(require("./swagger.json"));
-// import swaggerDoc from './swagger.dev.json';
 const app = (0, express_1.default)();
 exports.app = app;
+const auth = Buffer.from('250a4b68f4b9439696580f24d1daa8f7:2e25c4b9ec6e4cd6931018051362a96b').toString('base64');
+const pathsWithoutAuth = ['/api/user/login'];
+const signedTokens = [];
+const signedUsers = {};
+console.log(auth);
 app.use((0, express_1.json)());
 app.use((0, express_1.urlencoded)({ extended: false }));
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({ credentials: true }));
 app.use((0, express_fileupload_1.default)({ limits: { files: 1 } }));
+app.use((0, cookie_parser_1.default)(auth));
+app.use((req, res, next) => {
+    var _a;
+    const pathname = req.originalUrl.split('?')[0];
+    const token = req.signedCookies['accessToken'];
+    const origin = (_a = req.headers.origin) !== null && _a !== void 0 ? _a : '*';
+    console.log(origin);
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    if (!token && !pathsWithoutAuth.includes(pathname))
+        return res.status(401).send({ error: { message: 'Need authorization' } });
+    else if (token && !signedTokens.includes(token))
+        return res.status(401).send({ error: { message: 'Invalid token' } });
+    req.accessToken = token;
+    req.userId = signedUsers[token];
+    return next();
+});
 // POEM
 // Возвращает стих
 app.get('/api/poem/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -113,7 +135,59 @@ app.post('/api/record/:id/vote', (req, res) => __awaiter(void 0, void 0, void 0,
     const ok = yield (0, Base_1.setPoemRecordScore)(id, userId, Number(vote));
     return res.sendStatus(ok ? 201 : 403);
 }));
+const getToken = (code) => __awaiter(void 0, void 0, void 0, function* () {
+    const body = `grant_type=authorization_code&code=${code}`;
+    return axios_1.default
+        .post(`https://oauth.yandex.ru/token`, body, {
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Authorization: `Basic ${auth}`,
+        },
+    })
+        .then((res) => ({ response: res.data }))
+        .catch((error) => ({ error }));
+});
+const getUserInfo = (token) => __awaiter(void 0, void 0, void 0, function* () {
+    return axios_1.default
+        .get('https://login.yandex.ru/info', { headers: { Authorization: 'OAuth ' + token } })
+        .then((res) => ({ response: res.data }))
+        .catch((error) => ({ error }));
+});
+const updateBaseUser = (yandexUser) => {
+    const baseUser = (0, Base_1.getUser)(yandexUser.id);
+    const { birthday, display_name, first_name, login, last_name, real_name, sex, id } = yandexUser;
+    const newUser = Object.assign(Object.assign({}, baseUser), { birthday, displayName: display_name, firstName: first_name, login, lastName: last_name, realName: real_name, sex,
+        id });
+    (0, Base_1.updateUser)(newUser);
+    return newUser;
+};
 // USER
+app.get('/api/user/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { code } = req.query;
+    if (!code)
+        return res.status(400).send({ error: { message: 'Parameter "code" is empty' } });
+    const { response, error } = yield getToken(code);
+    if (error || !response)
+        return res.status(401).send({ error });
+    const { access_token, expires_in } = response;
+    signedTokens.push(access_token);
+    res.cookie('accessToken', access_token, { path: '/', signed: true, maxAge: expires_in, httpOnly: true });
+    return res.sendStatus(201);
+}));
+app.get('/api/user/info', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.accessToken)
+        return res.status(401).send({ error: { message: 'Need authorization' } });
+    const { error, response } = yield getUserInfo(req.accessToken);
+    if (error || !response)
+        return res.status(400).send({ error });
+    console.log(response);
+    signedUsers[req.accessToken] = response.id;
+    const user = updateBaseUser(response);
+    return res.send({ response: user });
+}));
+app.get('/api/user/test', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.send('ok');
+}));
 // Возвращает топ записей юзера
 app.get('/api/user/:id/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;

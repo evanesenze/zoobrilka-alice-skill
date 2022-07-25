@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reshuffleTodayPoemId = exports.getAllUserRecords = exports.getUserRecords = exports.setPoemRecordScore = exports.getPoemRecord = exports.getPoemRecords = exports.deletePoemRecord = exports.saveNewPoemRecord = exports.getTodayPoem = exports.getAllPoemRecords = exports.cleanLog = exports.saveLog = exports.logsRef = exports.comparePoem = exports.searchPoems = exports.savePoem = exports.poemIsExists = exports.getPoem = void 0;
+exports.updateUser = exports.reshuffleTodayPoemId = exports.getAllUserRecords = exports.getUser = exports.getUserRecords = exports.setPoemRecordScore = exports.getPoemRecord = exports.getPoemRecords = exports.deletePoemRecord = exports.saveNewPoemRecord = exports.getTodayPoem = exports.getAllPoemRecords = exports.cleanLog = exports.saveLog = exports.logsRef = exports.comparePoem = exports.searchPoems = exports.savePoem = exports.poemIsExists = exports.getPoem = void 0;
 // import 'dotenv/config';
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const string_comparison_1 = require("string-comparison");
@@ -30,7 +30,6 @@ const usersRef = base.ref('users');
 const recordsRef = base.ref('records');
 const logsRef = base.ref('logs');
 exports.logsRef = logsRef;
-// eslint-disable-next-line prefer-const
 let todayPoemId = '0';
 const saveLog = (id, log) => __awaiter(void 0, void 0, void 0, function* () { return logsRef.child(id).push(log); });
 exports.saveLog = saveLog;
@@ -133,7 +132,9 @@ const saveNewPoemRecord = (userId, poemId, record) => __awaiter(void 0, void 0, 
 });
 exports.saveNewPoemRecord = saveNewPoemRecord;
 const getUser = (userId) => __awaiter(void 0, void 0, void 0, function* () { return (yield usersRef.child(userId).once('value')).toJSON(); });
+exports.getUser = getUser;
 const updateUser = (user) => __awaiter(void 0, void 0, void 0, function* () { return yield usersRef.child(user.id).update(user); });
+exports.updateUser = updateUser;
 const calculateUserRating = (recordIds) => __awaiter(void 0, void 0, void 0, function* () {
     const votes = [];
     for (let i = 0; i < recordIds.length; i++) {
