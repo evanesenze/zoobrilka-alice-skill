@@ -9,7 +9,7 @@ atLearn.command(/повтори.*стих/gi, (ctx) => {
   console.log('repeat poem');
   const newLearnData: ILearnData = { ...learnData, textType: 'full' };
   saveLearnData(ctx.session, newLearnData);
-  return Reply.text(getPoemText(newLearnData), { end_session: true });
+  return Reply.text(getPoemText(newLearnData));
 });
 
 atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
@@ -18,14 +18,14 @@ atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
   console.log('repeat poem');
   const newLearnData: ILearnData = { ...learnData, textType: 'block' };
   saveLearnData(ctx.session, newLearnData);
-  return Reply.text(getPoemText(newLearnData), { end_session: true });
+  return Reply.text(getPoemText(newLearnData));
 });
 
 atLearn.command(/повтори/, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   if (!learnData) return Reply.text('Вы не можете этого сделать');
   console.log('repeat');
-  return Reply.text(getPoemText(learnData), { end_session: true });
+  return Reply.text(getPoemText(learnData));
 });
 
 atLearn.command(...exitHandler);

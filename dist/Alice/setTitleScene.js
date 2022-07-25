@@ -19,7 +19,7 @@ atSetTitle.command(...extras_1.exitHandler);
 atSetTitle.command(...extras_1.backHandler);
 atSetTitle.command(...extras_1.helpHandler);
 atSetTitle.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c;
     const entities = (_a = ctx.nlu) === null || _a === void 0 ? void 0 : _a.entities;
     const findData = (0, extras_1.getFindData)(ctx.session);
     if (!findData)
@@ -32,25 +32,25 @@ atSetTitle.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
             const { poems } = findData;
             const itemNumbers = poems.map((_, i) => i + 1);
             const currentNumber = (_b = numbers.find((item) => itemNumbers.includes(Number(item.value)))) === null || _b === void 0 ? void 0 : _b.value;
-            const selectedPoem = poems.find((_, i) => i + 1 === currentNumber);
-            if (selectedPoem) {
-                const newLearnData = (0, extras_1.getNewLearnData)(selectedPoem, 'full', -1, -1);
+            const selectedPoemId = poems.findIndex((_, i) => i + 1 === currentNumber);
+            if (selectedPoemId !== -1) {
+                const poem = poems[selectedPoemId];
+                const newLearnData = (0, extras_1.getNewLearnData)(poem, 'full', -1, -1);
                 if (!newLearnData) {
                     ctx.leave();
                     return yandex_dialogs_sdk_1.Reply.text('Вышли назад');
                 }
-                (0, extras_1.saveFindData)(ctx.session, Object.assign(Object.assign({}, findData), { selectedPoem }));
+                (0, extras_1.saveFindData)(ctx.session, Object.assign(Object.assign({}, findData), { selectedPoemId }));
                 const poemText = (0, extras_1.getPoemText)(newLearnData);
-                const text = `Ты выбрал ${(0, extras_1.getAuthorName)(selectedPoem.author)} - ${selectedPoem.title}.\n\n`;
+                const text = `Ты выбрал ${(0, extras_1.getAuthorName)(poem.author)} - ${poem.title}.\n\n`;
                 (0, extras_1.addSceneHistory)(ctx.session, extras_1.POEM_SCENE);
                 ctx.enter(extras_1.POEM_SCENE);
                 return yandex_dialogs_sdk_1.Reply.text({ text: text + poemText, tts: text + 'Скажи "Прочитай", чтобы я его озвучил.\nСкажи "Учить", чтобы начать учить.\nСкажи "Поиск", чтобы начать поиск заново.' });
             }
         }
     }
-    const authorName = (0, extras_1.getAuthorName)(findData === null || findData === void 0 ? void 0 : findData.author);
-    const poems = yield (0, Base_1.searchPoems)(findData === null || findData === void 0 ? void 0 : findData.author, ctx.message);
-    let text = `Автор: ${authorName || 'Не задан'}.
+    const poems = yield (0, Base_1.searchPoems)((_c = findData === null || findData === void 0 ? void 0 : findData.author) !== null && _c !== void 0 ? _c : undefined, ctx.message);
+    let text = `Автор: ${(findData === null || findData === void 0 ? void 0 : findData.author) ? (0, extras_1.getAuthorName)(findData.author) : 'Не задан'}.
 Название: ${ctx.message}.`;
     if (poems.length) {
         const items = poems.map(({ title, author }, i) => `${i + 1}). ${(0, extras_1.getAuthorName)(author, true)} - ${title}.`.substring(0, 128));

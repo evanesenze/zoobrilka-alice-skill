@@ -63,7 +63,7 @@ alice.command(/стих дня/gi, (ctx) => __awaiter(void 0, void 0, void 0, fu
     (0, extras_1.addSceneHistory)(c.session, extras_1.POEM_SCENE);
     c.enter(extras_1.POEM_SCENE);
     const text = `Стих дня ${(0, extras_1.getAuthorName)(poem.author)} - ${poem.title}.\n\n`;
-    (0, extras_1.saveFindData)(c.session, { author: poem.author, items: [], poems: [poem], title: poem.title, selectedPoem: poem });
+    (0, extras_1.saveFindData)(c.session, { author: poem.author, items: [], poems: [poem], title: poem.title, selectedPoemId: 0 });
     const newLearnData = (0, extras_1.getNewLearnData)(poem, 'full', -1, -1);
     if (!newLearnData)
         return yandex_dialogs_sdk_1.Reply.text('К сожалению, сегодня не день стихов');

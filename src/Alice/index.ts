@@ -77,7 +77,7 @@ alice.command(/стих дня/gi, async (ctx) => {
   addSceneHistory(c.session, POEM_SCENE);
   c.enter(POEM_SCENE);
   const text = `Стих дня ${getAuthorName(poem.author)} - ${poem.title}.\n\n`;
-  saveFindData(c.session, { author: poem.author, items: [], poems: [poem], title: poem.title, selectedPoem: poem });
+  saveFindData(c.session, { author: poem.author, items: [], poems: [poem], title: poem.title, selectedPoemId: 0 });
   const newLearnData = getNewLearnData(poem, 'full', -1, -1);
   if (!newLearnData) return Reply.text('К сожалению, сегодня не день стихов');
   const poemText = getPoemText(newLearnData);

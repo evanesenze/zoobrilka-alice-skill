@@ -13,30 +13,36 @@ atPoemScene.command(/прочитай|читай|прочитать/gi, (ctx) =>
     const findData = (0, extras_1.getFindData)(ctx.session);
     if (!findData)
         return yandex_dialogs_sdk_1.Reply.text('Сейчас вы не можете это сделать');
-    const { selectedPoem } = findData;
-    if (!selectedPoem)
+    const { selectedPoemId, poems } = findData;
+    if (!selectedPoemId)
         return yandex_dialogs_sdk_1.Reply.text('Сейчас вы не можете это сделать');
-    const newLearnData = (0, extras_1.getNewLearnData)(selectedPoem, 'full', -1, -1);
+    const newLearnData = (0, extras_1.getNewLearnData)(poems[selectedPoemId], 'full', -1, -1);
     if (!newLearnData)
         return yandex_dialogs_sdk_1.Reply.text('Сейчас вы не можете это сделать');
     const poemText = (0, extras_1.getPoemText)(newLearnData);
     return yandex_dialogs_sdk_1.Reply.text({ text: poemText, tts: poemText + '.Что хотите делать дальше?' });
 });
 atPoemScene.command(/учить/gi, (ctx) => {
+    return yandex_dialogs_sdk_1.Reply.text(`Я буду произносить строку и давать время на ее повторение.
+По команде "Дальше", мы перейдем к следующей строке.
+По командам: "Повтори","Повтори блок" или "Повтори стих", я повторю текст еще раз.
+Скажи "Начать", чтобы преступить к заучиванию.`);
+});
+atPoemScene.command(/начать/gi, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);
     if (!findData)
         return yandex_dialogs_sdk_1.Reply.text('Сейчас вы не можете это сделать');
-    const { selectedPoem } = findData;
-    if (!selectedPoem)
+    const { selectedPoemId, poems } = findData;
+    if (!selectedPoemId)
         return yandex_dialogs_sdk_1.Reply.text('Сейчас вы не можете это сделать');
-    const learnData = (0, extras_1.getNewLearnData)(selectedPoem, 'row');
+    const learnData = (0, extras_1.getNewLearnData)(poems[selectedPoemId], 'row');
     if (!learnData)
         return yandex_dialogs_sdk_1.Reply.text('Сейчас вы не можете это сделать');
-    const text = (0, extras_1.getPoemText)(learnData);
+    const text = 'Повтори новую строку.\n' + (0, extras_1.getPoemText)(learnData);
     (0, extras_1.saveLearnData)(ctx.session, learnData);
     (0, extras_1.addSceneHistory)(ctx.session, extras_1.LEARN_SCENE);
     ctx.enter(extras_1.LEARN_SCENE);
-    return yandex_dialogs_sdk_1.Reply.text('Повтори строку.\nСкажи "Дальше", чтобы перейти к следующей строке\n\n' + text, { end_session: true });
+    return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 atPoemScene.command(/поиск/gi, (ctx) => {
     (0, extras_1.deleteFindData)(ctx.session);

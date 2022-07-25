@@ -21,25 +21,25 @@ atSetTitle.any(async (ctx) => {
       const { poems } = findData;
       const itemNumbers = poems.map((_, i) => i + 1);
       const currentNumber = numbers.find((item) => itemNumbers.includes(Number(item.value)))?.value;
-      const selectedPoem = poems.find((_, i) => i + 1 === currentNumber);
-      if (selectedPoem) {
-        const newLearnData = getNewLearnData(selectedPoem, 'full', -1, -1);
+      const selectedPoemId = poems.findIndex((_, i) => i + 1 === currentNumber);
+      if (selectedPoemId !== -1) {
+        const poem = poems[selectedPoemId];
+        const newLearnData = getNewLearnData(poem, 'full', -1, -1);
         if (!newLearnData) {
           ctx.leave();
           return Reply.text('Вышли назад');
         }
-        saveFindData(ctx.session, { ...findData, selectedPoem });
+        saveFindData(ctx.session, { ...findData, selectedPoemId });
         const poemText = getPoemText(newLearnData);
-        const text = `Ты выбрал ${getAuthorName(selectedPoem.author)} - ${selectedPoem.title}.\n\n`;
+        const text = `Ты выбрал ${getAuthorName(poem.author)} - ${poem.title}.\n\n`;
         addSceneHistory(ctx.session, POEM_SCENE);
         ctx.enter(POEM_SCENE);
         return Reply.text({ text: text + poemText, tts: text + 'Скажи "Прочитай", чтобы я его озвучил.\nСкажи "Учить", чтобы начать учить.\nСкажи "Поиск", чтобы начать поиск заново.' });
       }
     }
   }
-  const authorName = getAuthorName(findData?.author);
-  const poems = await searchPoems(findData?.author, ctx.message);
-  let text = `Автор: ${authorName || 'Не задан'}.
+  const poems = await searchPoems(findData?.author ?? undefined, ctx.message);
+  let text = `Автор: ${findData?.author ? getAuthorName(findData.author) : 'Не задан'}.
 Название: ${ctx.message}.`;
   if (poems.length) {
     const items = poems.map(({ title, author }, i) => `${i + 1}). ${getAuthorName(author, true)} - ${title}.`.substring(0, 128));

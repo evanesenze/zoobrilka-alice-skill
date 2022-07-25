@@ -13,8 +13,6 @@ interface IApiEntityYandexFioNew extends IApiEntityYandexFio {
 
 const ROWS_COUNT = 2;
 
-// const FIND_MENU_SCENE: SceneType = 'FIND_MENU_SCENE';
-// const SELECT_LIST_SCENE: SceneType = 'SELECT_LIST_SCENE';
 const LEARN_SCENE: SceneType = 'LEARN_SCENE';
 const SET_AUTHOR_SCENE: SceneType = 'SET_AUTHOR_SCENE';
 const SET_TITLE_SCENE: SceneType = 'SET_TITLE_SCENE';
@@ -22,7 +20,7 @@ const POEM_SCENE: SceneType = 'POEM_SCENE';
 
 const sceneNames: Record<SceneType, string> = {
   MENU: 'Меню',
-  POEM_SCENE: 'Просмтотре стиха',
+  POEM_SCENE: 'Просмотре стиха',
   LEARN_SCENE: 'Зубрилке',
   SET_AUTHOR_SCENE: 'Выборе автора',
   SET_TITLE_SCENE: 'Выборе название',
@@ -51,7 +49,13 @@ const backHandler: IHandlerType = [
       if (findData) saveFindData(ctx.session, { author: findData.author, title: '', poems: [], items: [] });
     }
     const scene = removeSceneHistory(ctx.session);
-    const message = String(sample(sceneMessages[scene]));
+    let message = String(sample(sceneMessages[scene]));
+    if (scene === 'SET_TITLE_SCENE') {
+      const findData = getFindData(ctx.session);
+      if (findData) {
+        message += findData.items.reduce((msg, item) => msg + `\n${item}`, '\n');
+      }
+    }
     ctx.enter(scene);
     return Reply.text(message);
   },
@@ -78,7 +82,9 @@ const sceneMessages: Record<SceneType, string[]> = {
 
 const sceneHints: Record<SceneType, TextReplyDeclaration[]> = {
   MENU: ["Ты можешь сказать мне одну из команд: 'Учить', 'Найти' или 'Стих дня'\nСкажи 'Я устал', для завершения чата."],
-  LEARN_SCENE: ["Скажи 'Дальше', чтобы начать учить новую строку.\nТакже можешь сказать: 'Повтори', 'Повтори стих', 'Повтори блок' или 'Назад'\nСкажи 'Я устал', для завершения чата."],
+  LEARN_SCENE: [
+    "Я буду произносить строку и давать время на ее повторение.\nСкажи 'Дальше', чтобы начать учить новую строку.\nТакже можешь сказать: 'Повтори', 'Повтори стих', 'Повтори блок' или 'Назад'\nСкажи 'Я устал', для завершения чата.",
+  ],
   SET_AUTHOR_SCENE: ["Назови имя/фамилию автора или скажи 'Пропустить', чтобы перейти к поиску по названию.\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
   SET_TITLE_SCENE: ["Скажи название стиха или назови номер одного из найденых.\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
   POEM_SCENE: ["Ты можешь сказать мне одну из команд: 'Прочитай', 'Учить', 'Поиск' или 'Назад'\nСкажи 'Я устал', для завершения чата."],
@@ -127,9 +133,9 @@ const getPoemText = (learnData: ILearnData) => {
   }
 };
 
-const extractAuthor = (entities?: IApiEntity[]): IAuthor => {
+const extractAuthor = (entities?: IApiEntity[]): IAuthor | null => {
   const names = entities?.filter((item) => item.type === 'YANDEX.FIO').map((item) => item as IApiEntityYandexFioNew);
-  if (!names?.length) return { lastName: '', firstName: '' } as IAuthor;
+  if (!names?.length) return null;
   const namesCount = names.length - 1;
   const name = names[namesCount];
   const firstName = `${name.value.first_name?.[0].toUpperCase() ?? ''}${name.value.first_name?.slice(1).toLocaleLowerCase() ?? ''}`;
@@ -137,7 +143,7 @@ const extractAuthor = (entities?: IApiEntity[]): IAuthor => {
   return { firstName, lastName };
 };
 
-const getAuthorName = (author?: IAuthor, short?: boolean): string => `${(short && author?.firstName ? `${author?.firstName[0]}.` : author?.firstName) ?? ''} ${author?.lastName ?? ''}`.trim();
+const getAuthorName = (author: IAuthor, short?: boolean): string => `${(short && author.firstName ? `${author.firstName[0]}.` : author.firstName) ?? ''} ${author.lastName ?? ''}`.trim();
 
 const getAllSessionData = (session?: ISession) => {
   if (!session)
@@ -201,7 +207,7 @@ const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
       if (!poemСomplited) {
         const text = 'Повтори стих целиком.\n\n' + getPoemText({ ...learnData, textType: 'full' });
         saveLearnData(ctx.session, { ...learnData, poemСomplited: true });
-        return Reply.text(text, { end_session: true });
+        return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к завершению' });
       } else {
         deleteLearnData(ctx.session);
         deleteFindData(ctx.session);
@@ -212,13 +218,13 @@ const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
       }
     }
     console.log('currentRow is last');
-    currentBlock.complited = true;
     if (currentBlock.rowsCount > 1 && currentBlock.index != 0 && !currentBlock.complited && currentBlock.rowsCount > 2) {
+      currentBlock.complited = true;
       console.log('currentBlock is not complited');
       const nextLearnData = { ...learnData, currentBlock, textType: 'full' } as ILearnData;
       saveLearnData(ctx.session, nextLearnData);
       const text = 'Молодец! Блок закончен, теперь повтори его полностью.\n\n' + getPoemText(nextLearnData);
-      return Reply.text(text, { end_session: true });
+      return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
     } else {
       const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index + 1, 0);
       if (!nextLearnData) {
@@ -227,7 +233,7 @@ const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
       }
       saveLearnData(ctx.session, nextLearnData);
       const text = 'Повтори новую строку.\n\n' + getPoemText(nextLearnData);
-      return Reply.text(text, { end_session: true });
+      return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
     }
   } else {
     console.log('next row');
@@ -240,14 +246,14 @@ const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
       }
       saveLearnData(ctx.session, nextLearnData);
       const text = 'Повтори новую строку.\n\n' + getPoemText(nextLearnData);
-      return Reply.text(text, { end_session: true });
+      return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
     } else {
       currentBlock.learnedRows.push(currentRow.index);
       console.log('repeat block');
       const nextLearnData = { ...learnData, currentBlock, textType: 'block' } as ILearnData;
       saveLearnData(ctx.session, nextLearnData);
       const text = 'Повтори уже выученые строки.\n\n' + getPoemText(nextLearnData);
-      return Reply.text(text, { end_session: true });
+      return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
     }
   }
 };
@@ -260,12 +266,7 @@ const deleteFindData = (session: ISession) => session.delete('findData');
 
 const deleteSelectListData = (session: ISession) => session.delete('selectListData');
 
-// const getSelectListData = (session: ISession): ISelectListData => session.get<ISelectListData>('selectListData');
-
-// const saveSelectListData = (session: ISession, newData: ISelectListData) => session.set('selectListData', newData); // !
-
 export {
-  // SELECT_LIST_SCENE,
   POEM_SCENE,
   SET_AUTHOR_SCENE,
   SET_TITLE_SCENE,
