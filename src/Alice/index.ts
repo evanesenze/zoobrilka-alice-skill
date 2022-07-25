@@ -57,11 +57,10 @@ alice.command(/учить|продолжи/gi, (ctx) => {
   const { poem } = learnData;
   const poemText = getPoemText(learnData);
   const text = `Продолжаем учить стих ${getAuthorName(poem.author)} - ${poem.title}.
-Скажи 'Дальше', чтобы перейти к следующей строке.
 
 ${poemText}`;
   c.enter(LEARN_SCENE);
-  return Reply.text(text);
+  return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 
 alice.command(/запомни|запиши|запись|записать|запомнить/gi, () =>

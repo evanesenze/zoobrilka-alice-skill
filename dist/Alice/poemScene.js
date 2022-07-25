@@ -38,7 +38,7 @@ atPoemScene.command(/начать/, (ctx) => {
     const learnData = (0, extras_1.getNewLearnData)(poems[selectedPoemId], 'row');
     if (!learnData)
         return (0, extras_1.exitWithError)(ctx, 'learnData not found');
-    const text = 'Повтори новую строку.\n' + (0, extras_1.getPoemText)(learnData);
+    const text = 'Повтори новую строку.\n\n' + (0, extras_1.getPoemText)(learnData);
     (0, extras_1.saveLearnData)(ctx.session, learnData);
     (0, extras_1.addSceneHistory)(ctx.session, extras_1.LEARN_SCENE);
     ctx.enter(extras_1.LEARN_SCENE);

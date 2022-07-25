@@ -47,11 +47,10 @@ alice.command(/учить|продолжи/gi, (ctx) => {
     const { poem } = learnData;
     const poemText = (0, extras_1.getPoemText)(learnData);
     const text = `Продолжаем учить стих ${(0, extras_1.getAuthorName)(poem.author)} - ${poem.title}.
-Скажи 'Дальше', чтобы перейти к следующей строке.
 
 ${poemText}`;
     c.enter(extras_1.LEARN_SCENE);
-    return yandex_dialogs_sdk_1.Reply.text(text);
+    return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 alice.command(/запомни|запиши|запись|записать|запомнить/gi, () => yandex_dialogs_sdk_1.Reply.text('К сожалению, я не умею записывать ваш голос. Перейди на сайт', { buttons: [yandex_dialogs_sdk_1.Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://www.google.com' })] }));
 alice.command(/расскажи|умеешь|не/gi, (ctx) => __awaiter(void 0, void 0, void 0, function* () { return extras_1.helpHandler[1](ctx); }));

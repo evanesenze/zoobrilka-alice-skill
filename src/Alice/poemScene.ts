@@ -51,7 +51,7 @@ atPoemScene.command(/начать/, (ctx) => {
   if (selectedPoemId === undefined) return exitWithError(ctx, 'selectedPoemId not found');
   const learnData = getNewLearnData(poems[selectedPoemId], 'row');
   if (!learnData) return exitWithError(ctx, 'learnData not found');
-  const text = 'Повтори новую строку.\n' + getPoemText(learnData);
+  const text = 'Повтори новую строку.\n\n' + getPoemText(learnData);
   saveLearnData(ctx.session, learnData);
   addSceneHistory(ctx.session, LEARN_SCENE);
   ctx.enter(LEARN_SCENE);
