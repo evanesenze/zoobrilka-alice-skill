@@ -159,7 +159,7 @@ app.get('/api/user/login', async (req, res) => {
   if (error || !response) return res.status(401).send({ error });
   const { access_token, expires_in } = response;
   signedTokens.push(access_token);
-  res.cookie('accessToken', access_token, { path: '/', signed: true, maxAge: expires_in, httpOnly: true });
+  res.cookie('accessToken', access_token, { path: '/', signed: true, maxAge: expires_in, httpOnly: true, sameSite: 'none' });
   return res.sendStatus(201);
 });
 
