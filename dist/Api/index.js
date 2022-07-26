@@ -54,16 +54,16 @@ app.use((0, express_fileupload_1.default)({ limits: { files: 1 } }));
 app.use((0, cookie_parser_1.default)(auth));
 const needAuth = (req, res, next) => {
     var _a;
-    const token = req.signedCookies['accessToken'];
+    // const token = req.signedCookies['accessToken'];
+    console.log(req.signedCookies);
+    console.log(req.cookies);
     const origin = (_a = req.headers.origin) !== null && _a !== void 0 ? _a : '*';
     console.log(origin);
     res.setHeader('Access-Control-Allow-Origin', origin);
-    if (!token)
-        return res.status(401).send({ error: { message: 'Need authorization' } });
-    else if (signedTokens.includes(token))
-        return res.status(401).send({ error: { message: 'Invalid token' } });
-    req.accessToken = token;
-    req.userId = signedUsers[token];
+    // if (!token) return res.status(401).send({ error: { message: 'Need authorization' } });
+    // else if (signedTokens.includes(token)) return res.status(401).send({ error: { message: 'Invalid token' } });
+    // req.accessToken = token;
+    // req.userId = signedUsers[token];
     return next();
 };
 const getToken = (code) => __awaiter(void 0, void 0, void 0, function* () {

@@ -43,14 +43,16 @@ app.use(fileupload({ limits: { files: 1 } }));
 app.use(cookieParser(auth));
 
 const needAuth = (req: UserRequest, res: Response, next: NextFunction) => {
-  const token = req.signedCookies['accessToken'];
+  // const token = req.signedCookies['accessToken'];
+  console.log(req.signedCookies);
+  console.log(req.cookies);
   const origin = req.headers.origin ?? '*';
   console.log(origin);
   res.setHeader('Access-Control-Allow-Origin', origin);
-  if (!token) return res.status(401).send({ error: { message: 'Need authorization' } });
-  else if (signedTokens.includes(token)) return res.status(401).send({ error: { message: 'Invalid token' } });
-  req.accessToken = token;
-  req.userId = signedUsers[token];
+  // if (!token) return res.status(401).send({ error: { message: 'Need authorization' } });
+  // else if (signedTokens.includes(token)) return res.status(401).send({ error: { message: 'Invalid token' } });
+  // req.accessToken = token;
+  // req.userId = signedUsers[token];
   return next();
 };
 
