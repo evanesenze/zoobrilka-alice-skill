@@ -27,6 +27,17 @@
         "summary": "Получить стих",
         "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string" }],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not Found",
             "schema": {
@@ -57,6 +68,17 @@
         "tags": ["Poem"],
         "summary": "Получить стих дня",
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not Found",
             "schema": {
@@ -104,6 +126,17 @@
           }
         ],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Bad Request",
             "schema": {
@@ -135,6 +168,17 @@
         "summary": "Получить запись",
         "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string" }],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not Found",
             "schema": {
@@ -167,6 +211,17 @@
           { "in": "body", "name": "userId", "required": true, "schema": { "type": "string" } }
         ],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Bad Request",
             "schema": {
@@ -201,6 +256,17 @@
           }
         ],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Bad Request",
             "schema": {
@@ -230,6 +296,17 @@
           { "in": "query", "name": "offset", "type": "number" }
         ],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Bad Request",
             "schema": {
@@ -264,6 +341,17 @@
         "summary": "Возвращает записи стихов по рейтингу",
         "parameters": [{ "in": "query", "name": "offset", "type": "number" }],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "200": {
             "description": "OK",
             "schema": {
@@ -290,8 +378,97 @@
           { "in": "query", "name": "poemId", "type": "string" }
         ],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "response": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Record"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/login": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Авторизация юзера",
+        "parameters": [{ "in": "query", "name": "code", "required": true, "type": "string" }],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "response": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Record"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/info": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Получить информацию о юзере",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
             "schema": {
               "type": "object",
               "properties": {
@@ -327,6 +504,17 @@
           { "in": "query", "name": "offset", "type": "number" }
         ],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "200": {
             "description": "OK",
             "schema": {
@@ -360,6 +548,17 @@
           { "in": "query", "name": "lastName", "type": "string" }
         ],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "$ref": "#/definitions/Error"
+                }
+              }
+            }
+          },
           "200": {
             "description": "OK",
             "schema": {
