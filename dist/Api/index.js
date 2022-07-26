@@ -169,7 +169,7 @@ app.get('/api/user/login', (req, res) => __awaiter(void 0, void 0, void 0, funct
         return res.status(401).send({ error });
     const { access_token, expires_in } = response;
     signedTokens.push(access_token);
-    res.cookie('accessToken', access_token, { path: '/', signed: true, maxAge: expires_in, httpOnly: true, sameSite: 'none' });
+    res.cookie('accessToken', access_token, { path: '/', signed: true, maxAge: expires_in, httpOnly: true, secure: true, sameSite: 'none' });
     return res.sendStatus(201);
 }));
 app.get('/api/user/info', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
