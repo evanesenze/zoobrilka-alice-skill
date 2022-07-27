@@ -53,6 +53,19 @@ atPoemScene.command(findCommand, (ctx) => {
     ctx.enter(extras_1.SET_AUTHOR_SCENE);
     return yandex_dialogs_sdk_1.Reply.text(text);
 });
+atPoemScene.command(/играть/, (ctx) => {
+    const findData = (0, extras_1.getFindData)(ctx.session);
+    console.log(findData);
+    if (!findData || findData.selectedPoemId === undefined)
+        return (0, extras_1.exitWithError)(ctx, 'findData not found');
+    const selectedPoem = findData.poems[findData.selectedPoemId];
+    const rows = selectedPoem.text.replace(/\n\n/g, '\n').split('\n');
+    (0, extras_1.saveGamesData)(ctx.session, { selectedPoem, rows });
+    (0, extras_1.addSceneHistory)(ctx.session, extras_1.GAMES_MENU_SCENE);
+    ctx.enter(extras_1.GAMES_MENU_SCENE);
+    const text = String((0, lodash_1.sample)(extras_1.sceneMessages['GAMES_MENU_SCENE']));
+    return yandex_dialogs_sdk_1.Reply.text(text);
+});
 atPoemScene.command(...extras_1.exitHandler);
 atPoemScene.command(...extras_1.backHandler);
 atPoemScene.command(...extras_1.helpHandler);

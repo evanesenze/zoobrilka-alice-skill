@@ -28,8 +28,6 @@ atSetTitle.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     if ((entities === null || entities === void 0 ? void 0 : entities.length) && findData.items.length) {
         const numbers = entities.filter((item) => item.type === 'YANDEX.NUMBER');
         if (numbers.length) {
-            if (!findData)
-                return (0, extras_1.exitWithError)(ctx, 'findData not found');
             const { poems } = findData;
             const itemNumbers = poems.map((_, i) => i + 1);
             const currentNumber = (_b = numbers.find((item) => itemNumbers.includes(Number(item.value)))) === null || _b === void 0 ? void 0 : _b.value;

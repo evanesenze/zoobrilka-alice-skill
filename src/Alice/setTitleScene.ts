@@ -18,7 +18,6 @@ atSetTitle.any(async (ctx) => {
   if (entities?.length && findData.items.length) {
     const numbers = entities.filter((item) => item.type === 'YANDEX.NUMBER');
     if (numbers.length) {
-      if (!findData) return exitWithError(ctx, 'findData not found');
       const { poems } = findData;
       const itemNumbers = poems.map((_, i) => i + 1);
       const currentNumber = numbers.find((item) => itemNumbers.includes(Number(item.value)))?.value;

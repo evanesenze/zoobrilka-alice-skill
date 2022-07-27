@@ -20,6 +20,9 @@ import {
 } from './extras';
 import { getTodayPoem, saveLog } from '../Base';
 import { CommandDeclaration } from 'yandex-dialogs-sdk/dist/command/command';
+import { atGame1 } from './game1Scene';
+import { atGame2 } from './game2Scene';
+import { atGameMenu } from './gameMenuScene';
 import { atLearn } from './learnScene';
 import { atPoemScene } from './poemScene';
 import { atSetAuthor } from './setAuthorScene';
@@ -109,5 +112,8 @@ alice.registerScene(atLearn);
 alice.registerScene(atPoemScene);
 alice.registerScene(atSetAuthor);
 alice.registerScene(atSetTitle);
+alice.registerScene(atGameMenu);
+alice.registerScene(atGame1);
+alice.registerScene(atGame2);
 
 export { alice };

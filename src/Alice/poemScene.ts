@@ -1,4 +1,5 @@
 import {
+  GAMES_MENU_SCENE,
   LEARN_SCENE,
   POEM_SCENE,
   SET_AUTHOR_SCENE,
@@ -12,6 +13,7 @@ import {
   getNewLearnData,
   getPoemText,
   helpHandler,
+  saveGamesData,
   saveLearnData,
   sceneMessages,
 } from './extras';
@@ -63,6 +65,19 @@ atPoemScene.command(findCommand, (ctx) => {
   cleanSceneHistory(ctx.session);
   addSceneHistory(ctx.session, SET_AUTHOR_SCENE);
   ctx.enter(SET_AUTHOR_SCENE);
+  return Reply.text(text);
+});
+
+atPoemScene.command(/играть/, (ctx) => {
+  const findData = getFindData(ctx.session);
+  console.log(findData);
+  if (!findData || findData.selectedPoemId === undefined) return exitWithError(ctx, 'findData not found');
+  const selectedPoem = findData.poems[findData.selectedPoemId];
+  const rows = selectedPoem.text.replace(/\n\n/g, '\n').split('\n');
+  saveGamesData(ctx.session, { selectedPoem, rows });
+  addSceneHistory(ctx.session, GAMES_MENU_SCENE);
+  ctx.enter(GAMES_MENU_SCENE);
+  const text = String(sample(sceneMessages['GAMES_MENU_SCENE']));
   return Reply.text(text);
 });
 
