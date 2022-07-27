@@ -40,7 +40,8 @@ const axios_1 = __importDefault(require("axios"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const express_fileupload_1 = __importDefault(require("express-fileupload"));
-const swagger_json_1 = __importDefault(require("./swagger.json"));
+// import swaggerDoc from './swagger.json';
+const swagger_dev_json_1 = __importDefault(require("./swagger.dev.json"));
 const app = (0, express_1.default)();
 exports.app = app;
 const auth = Buffer.from('250a4b68f4b9439696580f24d1daa8f7:2e25c4b9ec6e4cd6931018051362a96b').toString('base64');
@@ -215,7 +216,7 @@ app.get('/api/search', (req, res) => __awaiter(void 0, void 0, void 0, function*
     return res.send({ response });
 }));
 app.get('/wakeup', (req, res) => res.send('OK'));
-app.use('/swagger', swagger_ui_express_1.serve, (0, swagger_ui_express_1.setup)(swagger_json_1.default));
+app.use('/swagger', swagger_ui_express_1.serve, (0, swagger_ui_express_1.setup)(swagger_dev_json_1.default));
 app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield Alice_1.alice.handleRequest(req.body);
     return res.send(result);

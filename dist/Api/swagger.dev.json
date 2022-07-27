@@ -202,8 +202,10 @@
                         }
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/api/record/{id}/delete": {
+            "post": {
                 "tags": ["Record"],
                 "summary": "Удалить запись",
                 "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string" }],
