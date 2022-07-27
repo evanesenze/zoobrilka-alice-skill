@@ -38,7 +38,7 @@ const signedUsers: Record<string, string> = {};
 console.log(auth);
 app.use(json());
 app.use(urlencoded({ extended: false }));
-app.use(cors({ credentials: true }));
+app.use(cors({ credentials: true, origin: '*', allowedHeaders: ['Authorization'], methods: ['POST', 'GET', 'DELETE'], maxAge: 5000 }));
 app.use(fileupload({ limits: { files: 1 } }));
 app.use(cookieParser(auth));
 
@@ -46,7 +46,7 @@ const needAuth = (req: UserRequest, res: Response, next: NextFunction) => {
   const token = req.signedCookies['accessToken'];
   // console.log(req.signedCookies);
   // console.log(req.cookies);
-  const origin = req.headers.origin ?? '*';
+  const origin = req.headers.origin ?? 'http://localhost:3000/';
   console.log(origin);
   res.setHeader('Access-Control-Allow-Origin', origin);
   if (!token) return res.status(401).send({ error: { message: 'Need authorization' } });
@@ -136,9 +136,11 @@ app.get('/api/record/:id', async (req, res) => {
   if (!poemRecord) return res.status(404).send({ error: { message: 'Poem record not found' } });
   return res.send({ response: poemRecord });
 });
+
 // Удаляет запись
-app.delete('/api/record/:id', needAuth, async (req: UserRequest, res) => {
-  const { id } = req.params as { id: string };
+app.post('/api/record/:id/delete', needAuth, async (req: UserRequest, res) => {
+  const { id } = req.params as { id?: string };
+  if (!id) return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
   if (!req.userId) return res.status(401).send({ error: { message: 'Need authorization' } });
   const ok = await deletePoemRecord(req.userId, id);
   return res.sendStatus(ok ? 201 : 403);

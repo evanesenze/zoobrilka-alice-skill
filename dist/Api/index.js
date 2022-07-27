@@ -49,7 +49,7 @@ const signedUsers = {};
 console.log(auth);
 app.use((0, express_1.json)());
 app.use((0, express_1.urlencoded)({ extended: false }));
-app.use((0, cors_1.default)({ credentials: true }));
+app.use((0, cors_1.default)({ credentials: true, origin: '*', allowedHeaders: ['Authorization'], methods: ['POST', 'GET', 'DELETE'], maxAge: 5000 }));
 app.use((0, express_fileupload_1.default)({ limits: { files: 1 } }));
 app.use((0, cookie_parser_1.default)(auth));
 const needAuth = (req, res, next) => {
@@ -57,7 +57,7 @@ const needAuth = (req, res, next) => {
     const token = req.signedCookies['accessToken'];
     // console.log(req.signedCookies);
     // console.log(req.cookies);
-    const origin = (_a = req.headers.origin) !== null && _a !== void 0 ? _a : '*';
+    const origin = (_a = req.headers.origin) !== null && _a !== void 0 ? _a : 'http://localhost:3000/';
     console.log(origin);
     res.setHeader('Access-Control-Allow-Origin', origin);
     if (!token)
@@ -144,8 +144,10 @@ app.get('/api/record/:id', (req, res) => __awaiter(void 0, void 0, void 0, funct
     return res.send({ response: poemRecord });
 }));
 // Удаляет запись
-app.delete('/api/record/:id', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post('/api/record/:id/delete', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
+    if (!id)
+        return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
     if (!req.userId)
         return res.status(401).send({ error: { message: 'Need authorization' } });
     const ok = yield (0, Base_1.deletePoemRecord)(req.userId, id);
