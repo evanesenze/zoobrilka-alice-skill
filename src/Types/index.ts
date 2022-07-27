@@ -1,6 +1,6 @@
 type PoemTextType = 'full' | 'block' | 'row';
 
-type SceneType = 'LEARN_SCENE' | 'SET_AUTHOR_SCENE' | 'SET_TITLE_SCENE' | 'POEM_SCENE' | 'MENU';
+type SceneType = 'LEARN_SCENE' | 'SET_AUTHOR_SCENE' | 'SET_TITLE_SCENE' | 'POEM_SCENE' | 'MENU' | 'GAMES_MENU_SCENE' | 'GAME_1_SCENE';
 
 type IPoemRecordVotes = Record<string, number>;
 
@@ -69,6 +69,19 @@ interface IRowInfo {
 interface IAuthorInfo {
   name: string;
   poemsCount: number;
+}
+
+interface IGamesData {
+  selectedPoem: IPoem;
+  rows: string[];
+  selectedGameId?: number;
+}
+
+interface IGame1Data {
+  userScore: number;
+  startPairedRowsCount: number;
+  currentPairedRow: string[];
+  pairedRows: string[][];
 }
 
 interface IFindData {
