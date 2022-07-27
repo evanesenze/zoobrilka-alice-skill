@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.atSetTitle = void 0;
 const extras_1 = require("./extras");
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
+const lodash_1 = require("lodash");
 const Base_1 = require("../Base");
 const atSetTitle = new yandex_dialogs_sdk_1.Scene(extras_1.SET_TITLE_SCENE);
 exports.atSetTitle = atSetTitle;
@@ -55,6 +56,7 @@ atSetTitle.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
         return yandex_dialogs_sdk_1.Reply.text(text);
     }
     else {
-        return yandex_dialogs_sdk_1.Reply.text('Ничего не смог найти. Скажи название по-другому');
+        const message = String((0, lodash_1.sample)(['Кажется, такого стихотворения у меня пока нет.', 'Ничего не смог найти. Скажи название по-другому']));
+        return yandex_dialogs_sdk_1.Reply.text(message);
     }
 }));

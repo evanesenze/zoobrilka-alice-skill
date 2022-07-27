@@ -19,10 +19,10 @@ const skipCommand = /пропусти|пропуск|опустить/;
 atSetAuthor.command(nextCommand, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);
     if (!(findData === null || findData === void 0 ? void 0 : findData.author))
-        return yandex_dialogs_sdk_1.Reply.text('Автор не задан. Скажите "Пропустить", если не хотите указывать автора.');
+        return yandex_dialogs_sdk_1.Reply.text('Автор не задан.\nСкажите "Пропустить", если не хотите указывать автора.');
     (0, extras_1.addSceneHistory)(ctx.session, extras_1.SET_TITLE_SCENE);
     ctx.enter(extras_1.SET_TITLE_SCENE);
-    return yandex_dialogs_sdk_1.Reply.text(`Автор ${(0, extras_1.getAuthorName)(findData.author)} задан. Теперь скажи название.`);
+    return yandex_dialogs_sdk_1.Reply.text(`Автор ${(0, extras_1.getAuthorName)(findData.author)} задан.\nТеперь скажи название.`);
 });
 atSetAuthor.command(skipCommand, (ctx) => {
     (0, extras_1.addSceneHistory)(ctx.session, extras_1.SET_TITLE_SCENE);
@@ -40,5 +40,5 @@ atSetAuthor.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const text = `Автор: ${author ? (0, extras_1.getAuthorName)(author) : 'Не задан'}.`;
     const tts = text + 'Если я правильно тебя понял, скажи "Дальше", если нет - попробуй сказать по-другому.';
     (0, extras_1.saveFindData)(ctx.session, { title: '', author, poems: [], items: [] });
-    return yandex_dialogs_sdk_1.Reply.text({ text: text + "Скажи 'Дальше' или 'Пропустить', чтобы продолжить.", tts });
+    return yandex_dialogs_sdk_1.Reply.text({ text: text + "\nСкажи 'Дальше' или 'Пропустить', чтобы продолжить.", tts });
 }));

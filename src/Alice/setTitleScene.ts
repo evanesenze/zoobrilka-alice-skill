@@ -1,5 +1,6 @@
 import { POEM_SCENE, SET_TITLE_SCENE, addSceneHistory, backHandler, exitHandler, exitWithError, getAuthorName, getFindData, getNewLearnData, getPoemText, helpHandler, saveFindData } from './extras';
 import { Reply, Scene } from 'yandex-dialogs-sdk';
+import { sample } from 'lodash';
 import { searchPoems } from '../Base';
 
 const atSetTitle = new Scene(SET_TITLE_SCENE);
@@ -42,7 +43,8 @@ atSetTitle.any(async (ctx) => {
     saveFindData(ctx.session, { ...findData, title: ctx.message, poems, items });
     return Reply.text(text);
   } else {
-    return Reply.text('Ничего не смог найти. Скажи название по-другому');
+    const message = String(sample(['Кажется, такого стихотворения у меня пока нет.', 'Ничего не смог найти. Скажи название по-другому']));
+    return Reply.text(message);
   }
 });
 

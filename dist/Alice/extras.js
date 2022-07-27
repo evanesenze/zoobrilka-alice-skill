@@ -18,6 +18,9 @@ const SET_TITLE_SCENE = 'SET_TITLE_SCENE';
 exports.SET_TITLE_SCENE = SET_TITLE_SCENE;
 const POEM_SCENE = 'POEM_SCENE';
 exports.POEM_SCENE = POEM_SCENE;
+const exitCommand = /выход|выйти|я.*устал|стоп|конец|пока|до.*свидания|хватит|все|закрыть|выключить|мне надоело|закончить|стой|остановись|остановить|завершить.*работу|точка|уйти/;
+const backCommand = /назад|предыдущее|вернуться|отмена|возврат|обратно|вернись|верни|отмени/;
+const helpCommand = /помощь|помоги|хелп|help/;
 const sceneNames = {
     MENU: 'Меню',
     POEM_SCENE: 'Просмотре стиха',
@@ -26,7 +29,7 @@ const sceneNames = {
     SET_TITLE_SCENE: 'Выборе название',
 };
 const exitHandler = [
-    ['выйти', 'хватит', 'стоп', 'я устал', 'выход'],
+    exitCommand,
     (ctx) => {
         ctx.enter('');
         if (loggingIsEnable(ctx.session))
@@ -39,7 +42,7 @@ const exitHandler = [
 ];
 exports.exitHandler = exitHandler;
 const backHandler = [
-    ['назад', 'вернись'],
+    backCommand,
     (ctx) => {
         const currentScene = getCurrentScene(ctx.session);
         if (currentScene === 'SET_AUTHOR_SCENE') {
@@ -58,13 +61,26 @@ const backHandler = [
                 message += findData.items.reduce((msg, item) => msg + `\n${item}`, '\n');
             }
         }
+        else if (scene === 'POEM_SCENE') {
+            {
+                const findData = getFindData(ctx.session);
+                if (findData && findData.selectedPoemId) {
+                    const poem = findData.poems[findData.selectedPoemId];
+                    const newLearnData = getNewLearnData(poem, 'full', -1, -1);
+                    if (!newLearnData)
+                        return exitWithError(ctx, 'newLearnData not found');
+                    const poemText = getPoemText(newLearnData);
+                    message += `\n\n ${poemText}`;
+                }
+            }
+        }
         ctx.enter(scene);
         return yandex_dialogs_sdk_1.Reply.text(message);
     },
 ];
 exports.backHandler = backHandler;
 const helpHandler = [
-    ['помоги', 'помощь'],
+    helpCommand,
     (ctx) => {
         const scene = getCurrentScene(ctx.session);
         const sceneName = sceneNames[scene];
@@ -296,7 +312,17 @@ const updateErrorsList = (session, error) => {
 };
 const exitWithError = (ctx, error) => {
     updateErrorsList(ctx.session, error);
-    const messages = ['Сейчас вы не можете это сделать'];
+    const messages = [
+        'Сейчас вы не можете это сделать',
+        'Не разобрал. Повтори еще раз',
+        'Попробуй еще раз',
+        'Ой, я тебя не понял. Скажи что-нибудь другое',
+        'Извините, непонятно',
+        'Я не понимаю тебя',
+        'Не понимаю, что ты имеешь в виду! Если тебе надоело, просто скажи "Закончить"',
+        'Если хочешь продолжить, скажи - "Продолжаем"',
+        'Я пока не понимаю, что мне делать. Скажи "Помощь", чтобы я рассказал про команды, на которые я умею отвечать',
+    ];
     const message = String((0, lodash_1.sample)(messages));
     return yandex_dialogs_sdk_1.Reply.text(message);
 };

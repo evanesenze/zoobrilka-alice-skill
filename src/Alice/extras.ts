@@ -20,6 +20,9 @@ const SET_AUTHOR_SCENE: SceneType = 'SET_AUTHOR_SCENE';
 const SET_TITLE_SCENE: SceneType = 'SET_TITLE_SCENE';
 const POEM_SCENE: SceneType = 'POEM_SCENE';
 
+const exitCommand = /выход|выйти|я.*устал|стоп|конец|пока|до.*свидания|хватит|все|закрыть|выключить|мне надоело|закончить|стой|остановись|остановить|завершить.*работу|точка|уйти/;
+const backCommand = /назад|предыдущее|вернуться|отмена|возврат|обратно|вернись|верни|отмени/;
+const helpCommand = /помощь|помоги|хелп|help/;
 const sceneNames: Record<SceneType, string> = {
   MENU: 'Меню',
   POEM_SCENE: 'Просмотре стиха',
@@ -29,7 +32,7 @@ const sceneNames: Record<SceneType, string> = {
 };
 
 const exitHandler: IHandlerType = [
-  ['выйти', 'хватит', 'стоп', 'я устал', 'выход'],
+  exitCommand,
   (ctx) => {
     ctx.enter('');
     if (loggingIsEnable(ctx.session)) cleanLog(ctx.userId);
@@ -41,7 +44,7 @@ const exitHandler: IHandlerType = [
 ];
 
 const backHandler: IHandlerType = [
-  ['назад', 'вернись'],
+  backCommand,
   (ctx) => {
     const currentScene = getCurrentScene(ctx.session);
     if (currentScene === 'SET_AUTHOR_SCENE') {
@@ -57,6 +60,17 @@ const backHandler: IHandlerType = [
       if (findData) {
         message += findData.items.reduce((msg, item) => msg + `\n${item}`, '\n');
       }
+    } else if (scene === 'POEM_SCENE') {
+      {
+        const findData = getFindData(ctx.session);
+        if (findData && findData.selectedPoemId) {
+          const poem = findData.poems[findData.selectedPoemId];
+          const newLearnData = getNewLearnData(poem, 'full', -1, -1);
+          if (!newLearnData) return exitWithError(ctx, 'newLearnData not found');
+          const poemText = getPoemText(newLearnData);
+          message += `\n\n ${poemText}`;
+        }
+      }
     }
     ctx.enter(scene);
     return Reply.text(message);
@@ -64,7 +78,7 @@ const backHandler: IHandlerType = [
 ];
 
 const helpHandler: IHandlerType = [
-  ['помоги', 'помощь'],
+  helpCommand,
   (ctx) => {
     const scene = getCurrentScene(ctx.session);
     const sceneName = sceneNames[scene];
@@ -286,7 +300,17 @@ const updateErrorsList = (session: ISession, error: unknown) => {
 
 const exitWithError = (ctx: IStageContext, error: unknown) => {
   updateErrorsList(ctx.session, error);
-  const messages: string[] = ['Сейчас вы не можете это сделать'];
+  const messages: string[] = [
+    'Сейчас вы не можете это сделать',
+    'Не разобрал. Повтори еще раз',
+    'Попробуй еще раз',
+    'Ой, я тебя не понял. Скажи что-нибудь другое',
+    'Извините, непонятно',
+    'Я не понимаю тебя',
+    'Не понимаю, что ты имеешь в виду! Если тебе надоело, просто скажи "Закончить"',
+    'Если хочешь продолжить, скажи - "Продолжаем"',
+    'Я пока не понимаю, что мне делать. Скажи "Помощь", чтобы я рассказал про команды, на которые я умею отвечать',
+  ];
   const message = String(sample(messages));
   return Reply.text(message);
 };
