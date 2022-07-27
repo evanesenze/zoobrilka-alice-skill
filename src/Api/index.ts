@@ -44,13 +44,13 @@ app.use(cookieParser(auth));
 
 const needAuth = (req: UserRequest, res: Response, next: NextFunction) => {
   const token = req.signedCookies['accessToken'];
-  console.log(req.signedCookies);
-  console.log(req.cookies);
+  // console.log(req.signedCookies);
+  // console.log(req.cookies);
   const origin = req.headers.origin ?? '*';
   console.log(origin);
   res.setHeader('Access-Control-Allow-Origin', origin);
-  // if (!token) return res.status(401).send({ error: { message: 'Need authorization' } });
-  // else if (signedTokens.includes(token)) return res.status(401).send({ error: { message: 'Invalid token' } });
+  if (!token) return res.status(401).send({ error: { message: 'Need authorization' } });
+  else if (!signedTokens.includes(token)) return res.status(401).send({ error: { message: 'Invalid token' } });
   req.accessToken = token;
   req.userId = signedUsers[token];
   return next();
@@ -95,21 +95,21 @@ const updateBaseUser = (yandexUser: IOauthUserInfoResponse): IUser => {
 
 // POEM
 // Возвращает стих
-app.get('/api/poem/:id', needAuth, async (req, res) => {
+app.get('/api/poem/:id', async (req, res) => {
   const { id } = req.params as { id: string };
   const poem = id === 'today' ? await getTodayPoem() : await getPoem(id);
   if (!poem) return res.status(404).send({ error: { message: 'Poem not found' } });
   return res.send({ response: poem });
 });
 // Возвращает записи стиха
-app.get('/api/records/:poemId', needAuth, async (req, res) => {
+app.get('/api/records/:poemId', async (req, res) => {
   const { poemId } = req.params as { poemId: string };
   const { offset } = req.query as { offset?: number };
   const response = await getPoemRecords(poemId, offset ?? 0);
   return res.send({ response });
 });
 // Возвращает записи стихов
-app.get('/api/records', needAuth, async (req, res) => {
+app.get('/api/records', async (req, res) => {
   const { offset } = req.query as { offset?: number };
   const response = await getAllPoemRecords(offset ?? 0);
   return res.send({ response });
@@ -117,39 +117,40 @@ app.get('/api/records', needAuth, async (req, res) => {
 
 // RECORD
 // Загрузка новой записи
-app.post('/api/record', needAuth, async (req, res) => {
+app.post('/api/record', needAuth, async (req: UserRequest, res) => {
   const { files } = req;
-  const { userId, poemId } = req.body;
+  const { poemId, ownerName, poemName } = req.body;
   if (!files?.record) return res.status(400).send({ error: { message: 'Parameter "record" is empty' } });
-  if (!userId) return res.status(400).send({ error: { message: 'Parameter "userId" is empty' } });
+  if (!req.userId) return res.status(401).send({ error: { message: 'Need authorization' } });
   if (!poemId) return res.status(400).send({ error: { message: 'Parameter "poemId" is empty' } });
+  if (!ownerName) return res.status(400).send({ error: { message: 'Parameter "ownerName" is empty' } });
+  if (!poemName) return res.status(400).send({ error: { message: 'Parameter "poemName" is empty' } });
   const record = files.record as fileupload.UploadedFile;
-  const response = await saveNewPoemRecord(userId, poemId, record);
+  const response = await saveNewPoemRecord(req.userId, poemId, ownerName, poemName, record);
   return res.send({ response });
 });
 // Возвращает запись
-app.get('/api/record/:id', needAuth, async (req, res) => {
+app.get('/api/record/:id', async (req, res) => {
   const { id } = req.params as { id: string };
   const poemRecord = await getPoemRecord(id);
   if (!poemRecord) return res.status(404).send({ error: { message: 'Poem record not found' } });
   return res.send({ response: poemRecord });
 });
 // Удаляет запись
-app.delete('/api/record/:id', needAuth, async (req, res) => {
+app.delete('/api/record/:id', needAuth, async (req: UserRequest, res) => {
   const { id } = req.params as { id: string };
-  const { userId } = req.body;
-  if (!userId) return res.status(400).send({ error: { message: 'Parameter "userId" is empty' } });
-  const ok = await deletePoemRecord(userId, id);
+  if (!req.userId) return res.status(401).send({ error: { message: 'Need authorization' } });
+  const ok = await deletePoemRecord(req.userId, id);
   return res.sendStatus(ok ? 201 : 403);
 });
 // Оценить запись
-app.post('/api/record/:id/vote', needAuth, async (req, res) => {
+app.post('/api/record/:id/vote', needAuth, async (req: UserRequest, res) => {
   const { id } = req.params as { id?: string };
-  const { userId, vote } = req.body as { userId?: string; vote?: string };
+  const { vote } = req.body as { userId?: string; vote?: string };
   if (!id) return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
-  if (!userId) return res.status(400).send({ error: { message: 'Parameter "userId" is empty' } });
+  if (!req.userId) return res.status(401).send({ error: { message: 'Need authorization' } });
   if (!vote) return res.status(400).send({ error: { message: 'Parameter "vote" is empty' } });
-  const ok = await setPoemRecordScore(id, userId, Number(vote));
+  const ok = await setPoemRecordScore(id, req.userId, Number(vote));
   return res.sendStatus(ok ? 201 : 403);
 });
 
@@ -161,6 +162,9 @@ app.get('/api/user/login', async (req, res) => {
   if (error || !response) return res.status(401).send({ error });
   const { access_token, expires_in } = response;
   signedTokens.push(access_token);
+  const origin = req.headers.origin ?? '*';
+  console.log(origin);
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.cookie('accessToken', access_token, { path: '/', signed: true, maxAge: expires_in, httpOnly: true, secure: true, sameSite: 'none' });
   return res.sendStatus(201);
 });
@@ -175,7 +179,7 @@ app.get('/api/user/info', needAuth, async (req: UserRequest, res) => {
 });
 
 // Возвращает топ записей юзера
-app.get('/api/user/:id/records', needAuth, async (req, res) => {
+app.get('/api/user/:id/records', async (req, res) => {
   const { id } = req.params as { id?: string };
   const { poemId } = req.query as { poemId?: string };
   if (!id) return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
@@ -183,14 +187,14 @@ app.get('/api/user/:id/records', needAuth, async (req, res) => {
   return res.send({ response });
 });
 // Возвращает топ юзеров и их записей
-app.get('/api/users/records', needAuth, async (req, res) => {
+app.get('/api/users/records', async (req, res) => {
   const { poemId, offset } = req.query as { poemId?: string; offset?: number };
   const response = await getAllUserRecords(offset ?? 0, poemId);
   return res.send({ response });
 });
 
 // EXTRA
-app.get('/api/search', needAuth, async (req, res) => {
+app.get('/api/search', async (req, res) => {
   const { firstName, title, lastName } = req.query as { firstName?: string; title?: string; lastName?: string };
   const response = await searchPoems({ firstName: firstName ?? '', lastName: lastName ?? '' }, title);
   return res.send({ response });

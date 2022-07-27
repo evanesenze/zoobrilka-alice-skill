@@ -55,13 +55,15 @@ app.use((0, cookie_parser_1.default)(auth));
 const needAuth = (req, res, next) => {
     var _a;
     const token = req.signedCookies['accessToken'];
-    console.log(req.signedCookies);
-    console.log(req.cookies);
+    // console.log(req.signedCookies);
+    // console.log(req.cookies);
     const origin = (_a = req.headers.origin) !== null && _a !== void 0 ? _a : '*';
     console.log(origin);
     res.setHeader('Access-Control-Allow-Origin', origin);
-    // if (!token) return res.status(401).send({ error: { message: 'Need authorization' } });
-    // else if (signedTokens.includes(token)) return res.status(401).send({ error: { message: 'Invalid token' } });
+    if (!token)
+        return res.status(401).send({ error: { message: 'Need authorization' } });
+    else if (!signedTokens.includes(token))
+        return res.status(401).send({ error: { message: 'Invalid token' } });
     req.accessToken = token;
     req.userId = signedUsers[token];
     return next();
@@ -94,7 +96,7 @@ const updateBaseUser = (yandexUser) => {
 };
 // POEM
 // Возвращает стих
-app.get('/api/poem/:id', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/api/poem/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const poem = id === 'today' ? yield (0, Base_1.getTodayPoem)() : yield (0, Base_1.getPoem)(id);
     if (!poem)
@@ -102,14 +104,14 @@ app.get('/api/poem/:id', needAuth, (req, res) => __awaiter(void 0, void 0, void 
     return res.send({ response: poem });
 }));
 // Возвращает записи стиха
-app.get('/api/records/:poemId', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/api/records/:poemId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { poemId } = req.params;
     const { offset } = req.query;
     const response = yield (0, Base_1.getPoemRecords)(poemId, offset !== null && offset !== void 0 ? offset : 0);
     return res.send({ response });
 }));
 // Возвращает записи стихов
-app.get('/api/records', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/api/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { offset } = req.query;
     const response = yield (0, Base_1.getAllPoemRecords)(offset !== null && offset !== void 0 ? offset : 0);
     return res.send({ response });
@@ -118,19 +120,23 @@ app.get('/api/records', needAuth, (req, res) => __awaiter(void 0, void 0, void 0
 // Загрузка новой записи
 app.post('/api/record', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { files } = req;
-    const { userId, poemId } = req.body;
+    const { poemId, ownerName, poemName } = req.body;
     if (!(files === null || files === void 0 ? void 0 : files.record))
         return res.status(400).send({ error: { message: 'Parameter "record" is empty' } });
-    if (!userId)
-        return res.status(400).send({ error: { message: 'Parameter "userId" is empty' } });
+    if (!req.userId)
+        return res.status(401).send({ error: { message: 'Need authorization' } });
     if (!poemId)
         return res.status(400).send({ error: { message: 'Parameter "poemId" is empty' } });
+    if (!ownerName)
+        return res.status(400).send({ error: { message: 'Parameter "ownerName" is empty' } });
+    if (!poemName)
+        return res.status(400).send({ error: { message: 'Parameter "poemName" is empty' } });
     const record = files.record;
-    const response = yield (0, Base_1.saveNewPoemRecord)(userId, poemId, record);
+    const response = yield (0, Base_1.saveNewPoemRecord)(req.userId, poemId, ownerName, poemName, record);
     return res.send({ response });
 }));
 // Возвращает запись
-app.get('/api/record/:id', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/api/record/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const poemRecord = yield (0, Base_1.getPoemRecord)(id);
     if (!poemRecord)
@@ -140,27 +146,27 @@ app.get('/api/record/:id', needAuth, (req, res) => __awaiter(void 0, void 0, voi
 // Удаляет запись
 app.delete('/api/record/:id', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const { userId } = req.body;
-    if (!userId)
-        return res.status(400).send({ error: { message: 'Parameter "userId" is empty' } });
-    const ok = yield (0, Base_1.deletePoemRecord)(userId, id);
+    if (!req.userId)
+        return res.status(401).send({ error: { message: 'Need authorization' } });
+    const ok = yield (0, Base_1.deletePoemRecord)(req.userId, id);
     return res.sendStatus(ok ? 201 : 403);
 }));
 // Оценить запись
 app.post('/api/record/:id/vote', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const { userId, vote } = req.body;
+    const { vote } = req.body;
     if (!id)
         return res.status(400).send({ error: { message: 'Parameter "id" is empty' } });
-    if (!userId)
-        return res.status(400).send({ error: { message: 'Parameter "userId" is empty' } });
+    if (!req.userId)
+        return res.status(401).send({ error: { message: 'Need authorization' } });
     if (!vote)
         return res.status(400).send({ error: { message: 'Parameter "vote" is empty' } });
-    const ok = yield (0, Base_1.setPoemRecordScore)(id, userId, Number(vote));
+    const ok = yield (0, Base_1.setPoemRecordScore)(id, req.userId, Number(vote));
     return res.sendStatus(ok ? 201 : 403);
 }));
 // USER
 app.get('/api/user/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { code } = req.query;
     if (!code)
         return res.status(400).send({ error: { message: 'Parameter "code" is empty' } });
@@ -169,6 +175,9 @@ app.get('/api/user/login', (req, res) => __awaiter(void 0, void 0, void 0, funct
         return res.status(401).send({ error });
     const { access_token, expires_in } = response;
     signedTokens.push(access_token);
+    const origin = (_a = req.headers.origin) !== null && _a !== void 0 ? _a : '*';
+    console.log(origin);
+    res.setHeader('Access-Control-Allow-Origin', origin);
     res.cookie('accessToken', access_token, { path: '/', signed: true, maxAge: expires_in, httpOnly: true, secure: true, sameSite: 'none' });
     return res.sendStatus(201);
 }));
@@ -183,7 +192,7 @@ app.get('/api/user/info', needAuth, (req, res) => __awaiter(void 0, void 0, void
     return res.send({ response: user });
 }));
 // Возвращает топ записей юзера
-app.get('/api/user/:id/records', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/api/user/:id/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const { poemId } = req.query;
     if (!id)
@@ -192,13 +201,13 @@ app.get('/api/user/:id/records', needAuth, (req, res) => __awaiter(void 0, void 
     return res.send({ response });
 }));
 // Возвращает топ юзеров и их записей
-app.get('/api/users/records', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/api/users/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { poemId, offset } = req.query;
     const response = yield (0, Base_1.getAllUserRecords)(offset !== null && offset !== void 0 ? offset : 0, poemId);
     return res.send({ response });
 }));
 // EXTRA
-app.get('/api/search', needAuth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/api/search', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { firstName, title, lastName } = req.query;
     const response = yield (0, Base_1.searchPoems)({ firstName: firstName !== null && firstName !== void 0 ? firstName : '', lastName: lastName !== null && lastName !== void 0 ? lastName : '' }, title);
     return res.send({ response });

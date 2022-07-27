@@ -111,7 +111,7 @@ const getPoemRecord = async (recordId: string): Promise<IPoemRecord | null> => (
 
 const updatePoemRecord = async (poemRecord: IPoemRecord) => await recordsRef.child(poemRecord.id).update(poemRecord);
 
-const saveNewPoemRecord = async (userId: string, poemId: string, record: UploadedFile): Promise<IPoemRecord> => {
+const saveNewPoemRecord = async (userId: string, poemId: string, ownerName: string, poemName: string, record: UploadedFile): Promise<IPoemRecord> => {
   const recordId = v4();
   const file = storage.file(`${poemId}/${recordId}.mp3`);
   await file.save(record.data);
@@ -123,6 +123,8 @@ const saveNewPoemRecord = async (userId: string, poemId: string, record: Uploade
   )[0];
   const poemRecord: IPoemRecord = {
     id: recordId,
+    ownerName,
+    poemName,
     url,
     owner: userId,
     poem: poemId,

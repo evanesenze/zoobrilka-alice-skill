@@ -21,7 +21,9 @@ interface IPoem {
 interface IPoemRecord {
   id: string;
   url: string;
+  ownerName: string;
   owner: string;
+  poemName: string;
   poem: string;
   rating: number;
   votes?: IPoemRecordVotes;

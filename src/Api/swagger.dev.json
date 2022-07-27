@@ -18,7 +18,7 @@
     }
   ],
   "schemes": ["https", "http"],
-  "consumes": ["application/json"],
+  "consumes": ["multipart/form-data"],
   "produces": ["application/json"],
   "paths": {
     "/api/poem/{id}": {
@@ -108,7 +108,6 @@
       "post": {
         "tags": ["Record"],
         "summary": "Загрузка новой записи",
-        "description": "Content-Type: multipart/form-data",
         "parameters": [
           {
             "in": "body",
@@ -116,11 +115,12 @@
             "required": true,
             "schema": {
               "type": "object",
-              "required": ["record", "userId", "poemId"],
+              "required": ["record", "poemId", "ownerName", "poemName"],
               "properties": {
                 "record": { "type": "object" },
-                "userId": { "type": "string" },
-                "poemId": { "type": "string" }
+                "poemId": { "type": "string" },
+                "ownerName": { "type": "string" },
+                "poemName": { "type": "string" }
               }
             }
           }
@@ -206,10 +206,7 @@
       "delete": {
         "tags": ["Record"],
         "summary": "Удалить запись",
-        "parameters": [
-          { "in": "path", "name": "id", "required": true, "type": "string" },
-          { "in": "body", "name": "userId", "required": true, "schema": { "type": "string" } }
-        ],
+        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "string" }],
         "responses": {
           "401": {
             "description": "Unauthorized",
@@ -252,7 +249,7 @@
             "in": "body",
             "name": "body",
             "required": true,
-            "schema": { "type": "object", "required": ["userId", "vote"], "properties": { "userId": { "type": "string" }, "vote": { "type": "string" } } }
+            "schema": { "type": "object", "required": ["vote"], "properties": { "vote": { "type": "string" } } }
           }
         ],
         "responses": {
@@ -604,7 +601,9 @@
       "properties": {
         "id": { "type": "string" },
         "url": { "type": "string" },
+        "ownerName": { "type": "string" },
         "owner": { "type": "string" },
+        "poemName": { "type": "string" },
         "poem": { "type": "string" },
         "rating": { "type": "number" },
         "votes": { "type": "object", "properties": { "userId": { "type": "string" } } }

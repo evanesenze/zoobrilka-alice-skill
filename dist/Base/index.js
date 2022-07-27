@@ -107,7 +107,7 @@ exports.searchPoems = searchPoems;
 const getPoemRecord = (recordId) => __awaiter(void 0, void 0, void 0, function* () { return (yield recordsRef.child(recordId).once('value')).toJSON(); });
 exports.getPoemRecord = getPoemRecord;
 const updatePoemRecord = (poemRecord) => __awaiter(void 0, void 0, void 0, function* () { return yield recordsRef.child(poemRecord.id).update(poemRecord); });
-const saveNewPoemRecord = (userId, poemId, record) => __awaiter(void 0, void 0, void 0, function* () {
+const saveNewPoemRecord = (userId, poemId, ownerName, poemName, record) => __awaiter(void 0, void 0, void 0, function* () {
     const recordId = (0, uuid_1.v4)();
     const file = storage.file(`${poemId}/${recordId}.mp3`);
     yield file.save(record.data);
@@ -117,6 +117,8 @@ const saveNewPoemRecord = (userId, poemId, record) => __awaiter(void 0, void 0, 
     }))[0];
     const poemRecord = {
         id: recordId,
+        ownerName,
+        poemName,
         url,
         owner: userId,
         poem: poemId,
