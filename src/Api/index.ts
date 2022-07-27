@@ -20,8 +20,8 @@ import axios from 'axios';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import fileupload from 'express-fileupload';
-// import swaggerDoc from './swagger.json';
-import swaggerDoc from './swagger.dev.json';
+import swaggerDoc from './swagger.json';
+// import swaggerDoc from './swagger.dev.json';
 
 interface UserRequest extends Request {
   accessToken?: string;
