@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getNewGame1Data = exports.deleteGame1Data = exports.saveGame1Data = exports.getGame1Data = exports.getGamesData = exports.saveGamesData = exports.getDelaySendText = exports.cleanSceneHistory = exports.deleteFindData = exports.saveFindData = exports.getFindData = exports.removeSceneHistory = exports.deleteSelectListData = exports.goLearnNext = exports.saveLearnData = exports.getNewLearnData = exports.getOldLearnData = exports.loggingIsEnable = exports.getCurrentScene = exports.getAllSessionData = exports.enableLogging = exports.getPoemText = exports.addSceneHistory = exports.getAuthorName = exports.exitWithError = exports.extractAuthor = exports.helpHandler = exports.sceneMessages = exports.sceneHints = exports.backHandler = exports.exitHandler = exports.LEARN_SCENE = exports.GAME_1_SCENE = exports.GAMES_MENU_SCENE = exports.SET_TITLE_SCENE = exports.SET_AUTHOR_SCENE = exports.POEM_SCENE = void 0;
+exports.getNewGame2Data = exports.deleteGame2Data = exports.saveGame2Data = exports.getGame2Data = exports.getNewGame1Data = exports.deleteGame1Data = exports.saveGame1Data = exports.getGame1Data = exports.getGamesData = exports.saveGamesData = exports.getDelaySendText = exports.cleanSceneHistory = exports.deleteFindData = exports.saveFindData = exports.getFindData = exports.removeSceneHistory = exports.deleteSelectListData = exports.goLearnNext = exports.saveLearnData = exports.getNewLearnData = exports.getOldLearnData = exports.loggingIsEnable = exports.getCurrentScene = exports.getAllSessionData = exports.enableLogging = exports.getPoemText = exports.addSceneHistory = exports.getAuthorName = exports.exitWithError = exports.extractAuthor = exports.helpHandler = exports.sceneMessages = exports.sceneHints = exports.backHandler = exports.exitHandler = exports.LEARN_SCENE = exports.GAME_2_SCENE = exports.GAME_1_SCENE = exports.GAMES_MENU_SCENE = exports.SET_TITLE_SCENE = exports.SET_AUTHOR_SCENE = exports.POEM_SCENE = void 0;
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
 const lodash_1 = require("lodash");
 const Base_1 = require("../Base");
@@ -22,6 +22,8 @@ const GAMES_MENU_SCENE = 'GAMES_MENU_SCENE';
 exports.GAMES_MENU_SCENE = GAMES_MENU_SCENE;
 const GAME_1_SCENE = 'GAME_1_SCENE';
 exports.GAME_1_SCENE = GAME_1_SCENE;
+const GAME_2_SCENE = 'GAME_2_SCENE';
+exports.GAME_2_SCENE = GAME_2_SCENE;
 const exitCommand = [
     'выход',
     'выйти',
@@ -52,6 +54,7 @@ const sceneNames = {
     SET_TITLE_SCENE: 'Выборе название',
     GAMES_MENU_SCENE: 'Выборе игры',
     GAME_1_SCENE: 'Игре 1',
+    GAME_2_SCENE: 'Игре 2',
 };
 const exitHandler = [
     exitCommand,
@@ -121,9 +124,12 @@ const sceneMessages = {
     SET_AUTHOR_SCENE: ['Назови имя/фамилию автора или скажи "Пропустить", чтобы перейти к поиску по названию.'],
     SET_TITLE_SCENE: ['Скажи название стиха или назови номер одного из найденых.'],
     POEM_SCENE: ['Текущий стих.'],
-    GAMES_MENU_SCENE: ['Режим создан для проверки знаний стиха.\nДля начала, назови номер игры из списка\n1.)Игра 1.'],
+    GAMES_MENU_SCENE: ['Режим создан для проверки знаний стиха.\nДля начала, назови номер игры из списка\n1.)Игра 1.\n2.)Игра 2.'],
     GAME_1_SCENE: [
         'В этой игре стих делится на блоки по две строки. Я говорю первую строку, даю тебе время вспомнить вторую и слушаю ответ.\nЕсли он верный - ты получаешь балл.\n\nСкажи "Начать", для запуска игры.',
+    ],
+    GAME_2_SCENE: [
+        'В этой игре стих делится на блоки по две строки. Я говорю текст блока, но закртываю в нем некоторые слова; даю тебе время подумать и слушаю полный текст блока\nЕсли он верный - ты получаешь балл.\n\nСкажи "Начать", для запуска игры.',
     ],
 };
 exports.sceneMessages = sceneMessages;
@@ -137,6 +143,7 @@ const sceneHints = {
     POEM_SCENE: ["Ты можешь сказать мне одну из команд: 'Прочитай', 'Учить', 'Поиск' или 'Назад'\nСкажи 'Я устал', для завершения чата."],
     GAMES_MENU_SCENE: ["Для начала, назови номер игры из списка\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
     GAME_1_SCENE: ["Прослушай первую строку блока и назови вторую, чтобы двигаться дальше.\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
+    GAME_2_SCENE: ["Прослушай текст блока с закртыми словами и назови полный текст, чтобы двигаться дальше.\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
 };
 exports.sceneHints = sceneHints;
 const enableLogging = (session) => session.set('logging', true);
@@ -207,6 +214,9 @@ const getAllSessionData = (session) => {
         };
     const functions = {
         currentScene: getCurrentScene,
+        gamesData: getGamesData,
+        game2Data: getGame2Data,
+        game1Data: getGame1Data,
         errorsList: getErrorsList,
         sceneHistory: (session) => session.get('sceneHistory'),
         findData: getFindData,
@@ -377,9 +387,38 @@ const getNewGame1Data = (gamesData) => {
     return { pairedRows, userScore: 0, currentPairedRow, startPairedRowsCount };
 };
 exports.getNewGame1Data = getNewGame1Data;
+const getNewGame2Data = (gamesData) => {
+    const items = (0, lodash_1.chunk)(gamesData.rows, 2)
+        .filter((item) => item.length === 2)
+        .reduce((acc, item) => {
+        var _a;
+        const originalText = item.join('\n');
+        const words = [...((_a = originalText.match(/([А-я]+)/gi)) !== null && _a !== void 0 ? _a : [])];
+        if (words.length < 3)
+            return acc;
+        const replacingWordsCount = Math.floor(words.length * 0.4);
+        const replacingWords = words.sort(() => Math.random() - 0.5).slice(0, replacingWordsCount);
+        const replacedText = replacingWords.reduce((res, word) => res.replace(word, '_'.repeat(word.length)), originalText);
+        acc.push({ originalText, replacedText });
+        return acc;
+    }, [])
+        .sort(() => 0.5 - Math.random());
+    if (!items.length)
+        return null;
+    const startItemsCount = items.length;
+    const currentItem = items.pop();
+    return { items, userScore: 0, currentItem, startItemsCount };
+};
+exports.getNewGame2Data = getNewGame2Data;
 const getGame1Data = (session) => session.get('game1Data');
 exports.getGame1Data = getGame1Data;
 const saveGame1Data = (session, data) => session.set('game1Data', data);
 exports.saveGame1Data = saveGame1Data;
 const deleteGame1Data = (session) => session.delete('game1Data');
 exports.deleteGame1Data = deleteGame1Data;
+const getGame2Data = (session) => session.get('game2Data');
+exports.getGame2Data = getGame2Data;
+const saveGame2Data = (session, data) => session.set('game2Data', data);
+exports.saveGame2Data = saveGame2Data;
+const deleteGame2Data = (session) => session.delete('game2Data');
+exports.deleteGame2Data = deleteGame2Data;

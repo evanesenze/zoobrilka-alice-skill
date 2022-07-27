@@ -22,6 +22,7 @@ const POEM_SCENE: SceneType = 'POEM_SCENE';
 
 const GAMES_MENU_SCENE: SceneType = 'GAMES_MENU_SCENE';
 const GAME_1_SCENE: SceneType = 'GAME_1_SCENE';
+const GAME_2_SCENE: SceneType = 'GAME_2_SCENE';
 
 const exitCommand = [
   'выход',
@@ -53,6 +54,7 @@ const sceneNames: Record<SceneType, string> = {
   SET_TITLE_SCENE: 'Выборе название',
   GAMES_MENU_SCENE: 'Выборе игры',
   GAME_1_SCENE: 'Игре 1',
+  GAME_2_SCENE: 'Игре 2',
 };
 
 const exitHandler: IHandlerType = [
@@ -118,9 +120,12 @@ const sceneMessages: Record<SceneType, string[]> = {
   SET_AUTHOR_SCENE: ['Назови имя/фамилию автора или скажи "Пропустить", чтобы перейти к поиску по названию.'],
   SET_TITLE_SCENE: ['Скажи название стиха или назови номер одного из найденых.'],
   POEM_SCENE: ['Текущий стих.'],
-  GAMES_MENU_SCENE: ['Режим создан для проверки знаний стиха.\nДля начала, назови номер игры из списка\n1.)Игра 1.'],
+  GAMES_MENU_SCENE: ['Режим создан для проверки знаний стиха.\nДля начала, назови номер игры из списка\n1.)Игра 1.\n2.)Игра 2.'],
   GAME_1_SCENE: [
     'В этой игре стих делится на блоки по две строки. Я говорю первую строку, даю тебе время вспомнить вторую и слушаю ответ.\nЕсли он верный - ты получаешь балл.\n\nСкажи "Начать", для запуска игры.',
+  ],
+  GAME_2_SCENE: [
+    'В этой игре стих делится на блоки по две строки. Я говорю текст блока, но закртываю в нем некоторые слова; даю тебе время подумать и слушаю полный текст блока\nЕсли он верный - ты получаешь балл.\n\nСкажи "Начать", для запуска игры.',
   ],
 };
 
@@ -134,6 +139,7 @@ const sceneHints: Record<SceneType, TextReplyDeclaration[]> = {
   POEM_SCENE: ["Ты можешь сказать мне одну из команд: 'Прочитай', 'Учить', 'Поиск' или 'Назад'\nСкажи 'Я устал', для завершения чата."],
   GAMES_MENU_SCENE: ["Для начала, назови номер игры из списка\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
   GAME_1_SCENE: ["Прослушай первую строку блока и назови вторую, чтобы двигаться дальше.\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
+  GAME_2_SCENE: ["Прослушай текст блока с закртыми словами и назови полный текст, чтобы двигаться дальше.\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
 };
 
 const enableLogging = (session: ISession) => session.set('logging', true);
@@ -198,6 +204,9 @@ const getAllSessionData = (session?: ISession) => {
     };
   const functions: Record<string, (session: ISession) => unknown> = {
     currentScene: getCurrentScene,
+    gamesData: getGamesData,
+    game2Data: getGame2Data,
+    game1Data: getGame1Data,
     errorsList: getErrorsList,
     sceneHistory: (session) => session.get('sceneHistory'),
     findData: getFindData,
@@ -364,11 +373,37 @@ const getNewGame1Data = (gamesData: IGamesData): IGame1Data | null => {
   return { pairedRows, userScore: 0, currentPairedRow, startPairedRowsCount };
 };
 
+const getNewGame2Data = (gamesData: IGamesData): IGame2Data | null => {
+  const items = chunk(gamesData.rows, 2)
+    .filter((item) => item.length === 2)
+    .reduce((acc, item) => {
+      const originalText = item.join('\n');
+      const words = [...(originalText.match(/([А-я]+)/gi) ?? [])];
+      if (words.length < 3) return acc;
+      const replacingWordsCount = Math.floor(words.length * 0.4);
+      const replacingWords = words.sort(() => Math.random() - 0.5).slice(0, replacingWordsCount);
+      const replacedText = replacingWords.reduce((res, word) => res.replace(word, '_'.repeat(word.length)), originalText);
+      acc.push({ originalText, replacedText });
+      return acc;
+    }, [] as IGame2DataItem[])
+    .sort(() => 0.5 - Math.random());
+  if (!items.length) return null;
+  const startItemsCount = items.length;
+  const currentItem = items.pop()!;
+  return { items, userScore: 0, currentItem, startItemsCount };
+};
+
 const getGame1Data = (session: ISession) => session.get<IGame1Data>('game1Data');
 
 const saveGame1Data = (session: ISession, data: IGame1Data) => session.set('game1Data', data);
 
 const deleteGame1Data = (session: ISession) => session.delete('game1Data');
+
+const getGame2Data = (session: ISession) => session.get<IGame2Data>('game2Data');
+
+const saveGame2Data = (session: ISession, data: IGame2Data) => session.set('game2Data', data);
+
+const deleteGame2Data = (session: ISession) => session.delete('game2Data');
 
 export {
   POEM_SCENE,
@@ -376,6 +411,7 @@ export {
   SET_TITLE_SCENE,
   GAMES_MENU_SCENE,
   GAME_1_SCENE,
+  GAME_2_SCENE,
   LEARN_SCENE,
   exitHandler,
   backHandler,
@@ -408,4 +444,8 @@ export {
   saveGame1Data,
   deleteGame1Data,
   getNewGame1Data,
+  getGame2Data,
+  saveGame2Data,
+  deleteGame2Data,
+  getNewGame2Data,
 };

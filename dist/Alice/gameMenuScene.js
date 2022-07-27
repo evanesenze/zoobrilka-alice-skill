@@ -4,7 +4,7 @@ exports.atGameMenu = void 0;
 const extras_1 = require("./extras");
 const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
 const lodash_1 = require("lodash");
-const games = [''];
+const games = [extras_1.GAME_1_SCENE, extras_1.GAME_2_SCENE];
 const atGameMenu = new yandex_dialogs_sdk_1.Scene(extras_1.GAMES_MENU_SCENE);
 exports.atGameMenu = atGameMenu;
 atGameMenu.command(...extras_1.exitHandler);
@@ -29,6 +29,18 @@ atGameMenu.command(/начать/, (ctx) => {
 ${game1Data.currentPairedRow[0]}`;
         return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[5000]> Скажи вторую строку.' });
     }
+    else if (selectedGameId === 2) {
+        ctx.enter(extras_1.GAME_2_SCENE);
+        (0, extras_1.addSceneHistory)(ctx.session, extras_1.GAME_2_SCENE);
+        const game2Data = (0, extras_1.getNewGame2Data)(gamesData);
+        if (!game2Data)
+            return yandex_dialogs_sdk_1.Reply.text('Данный стих не подходит для этой игры. Выберите другую.');
+        (0, extras_1.saveGame2Data)(ctx.session, game2Data);
+        const text = `Вот текст блока, с закрытыми словами:
+    
+${game2Data.currentItem.replacedText}`;
+        return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[5000]> Скажи полный текст.' });
+    }
     else {
         (0, extras_1.saveGamesData)(ctx.session, Object.assign(Object.assign({}, gamesData), { selectedGameId: undefined }));
         return yandex_dialogs_sdk_1.Reply.text('Выбранная игра недоступна. Выбери другую');
@@ -48,6 +60,10 @@ atGameMenu.any((ctx) => {
             (0, extras_1.saveGamesData)(ctx.session, Object.assign(Object.assign({}, gamesData), { selectedGameId: number }));
             if (number === 1) {
                 const text = String((0, lodash_1.sample)(extras_1.sceneMessages['GAME_1_SCENE']));
+                return yandex_dialogs_sdk_1.Reply.text(text);
+            }
+            else if (number === 2) {
+                const text = String((0, lodash_1.sample)(extras_1.sceneMessages['GAME_2_SCENE']));
                 return yandex_dialogs_sdk_1.Reply.text(text);
             }
         }

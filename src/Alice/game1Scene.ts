@@ -1,7 +1,6 @@
 import { GAMES_MENU_SCENE, GAME_1_SCENE, backHandler, deleteGame1Data, exitHandler, exitWithError, getGame1Data, helpHandler, removeSceneHistory, saveGame1Data, sceneMessages } from './extras';
 import { Reply, Scene } from 'yandex-dialogs-sdk';
 import { levenshtein } from 'string-comparison';
-import { sample } from 'lodash';
 
 const atGame1 = new Scene(GAME_1_SCENE);
 
@@ -26,11 +25,12 @@ atGame1.any((ctx) => {
     return Reply.text(`Игра закончена. Ты знаешь стих на ${((gameData.userScore / gameData.startPairedRowsCount) * 100).toFixed(1)}%.
 
 Для начала новой игры, назови ее номер:
-1.)Игра 1.`);
+1.)Игра 1.
+2.)Игра 2.`);
   }
   const currentPairedRow = gameData.pairedRows.pop()!;
   const text = `Твой текст совпал с оригиналом на ${(rate * 100).toFixed(1)}%.
-Текуший счет: ${userScore}.
+Текущий счет: ${userScore}.
 
 Вот первая строка следующего блока:
 ${currentPairedRow[0]}`;

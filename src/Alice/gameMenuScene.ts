@@ -1,21 +1,24 @@
 import {
   GAMES_MENU_SCENE,
   GAME_1_SCENE,
+  GAME_2_SCENE,
   addSceneHistory,
   backHandler,
   exitHandler,
   exitWithError,
   getGamesData,
   getNewGame1Data,
+  getNewGame2Data,
   helpHandler,
   saveGame1Data,
+  saveGame2Data,
   saveGamesData,
   sceneMessages,
 } from './extras';
 import { Reply, Scene } from 'yandex-dialogs-sdk';
 import { sample } from 'lodash';
 
-const games = [''];
+const games = [GAME_1_SCENE, GAME_2_SCENE];
 
 const atGameMenu = new Scene(GAMES_MENU_SCENE);
 
@@ -40,6 +43,16 @@ atGameMenu.command(/начать/, (ctx) => {
     
 ${game1Data.currentPairedRow[0]}`;
     return Reply.text({ text, tts: text + 'sil <[5000]> Скажи вторую строку.' });
+  } else if (selectedGameId === 2) {
+    ctx.enter(GAME_2_SCENE);
+    addSceneHistory(ctx.session, GAME_2_SCENE);
+    const game2Data = getNewGame2Data(gamesData);
+    if (!game2Data) return Reply.text('Данный стих не подходит для этой игры. Выберите другую.');
+    saveGame2Data(ctx.session, game2Data);
+    const text = `Вот текст блока, с закрытыми словами:
+    
+${game2Data.currentItem.replacedText}`;
+    return Reply.text({ text, tts: text + 'sil <[5000]> Скажи полный текст.' });
   } else {
     saveGamesData(ctx.session, { ...gamesData, selectedGameId: undefined });
     return Reply.text('Выбранная игра недоступна. Выбери другую');
@@ -58,6 +71,9 @@ atGameMenu.any((ctx) => {
       saveGamesData(ctx.session, { ...gamesData, selectedGameId: number });
       if (number === 1) {
         const text = String(sample(sceneMessages['GAME_1_SCENE']));
+        return Reply.text(text);
+      } else if (number === 2) {
+        const text = String(sample(sceneMessages['GAME_2_SCENE']));
         return Reply.text(text);
       }
     }
