@@ -1,34 +1,38 @@
-import { LEARN_SCENE, backHandler, exitHandler, exitWithError, getOldLearnData, getPoemText, goLearnNext, helpHandler, saveLearnData } from './extras';
+import { LEARN_SCENE, backHandler, exitHandler, exitWithError, getDelaySendText, getOldLearnData, getPoemText, goLearnNext, helpHandler, saveLearnData } from './extras';
 import { Reply, Scene } from 'yandex-dialogs-sdk';
 
 const atLearn = new Scene(LEARN_SCENE);
 
-atLearn.command(/повтори.*стих/gi, (ctx) => {
+const repeatCommand = /повтор|еще|дублировать|продублируй|не.*понял|повторить/;
+const repeatBlockCommand = /повтор.*(блок|блог)|еще.*(блок|блог)|дублировать.*(блок|блог)|продублируй.*(блок|блог)|не.*понял.*(блок|блог)/;
+const repeatPoemCommand = /повтор.*стих|еще.*стих|дублировать.*стих|продублируй.*стих|не.*понял.*стих|повторить.*стих/;
+
+atLearn.command(repeatPoemCommand, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   if (!learnData) return exitWithError(ctx, 'learnData not found');
   console.log('repeat poem');
   const newLearnData: ILearnData = { ...learnData, textType: 'full' };
   saveLearnData(ctx.session, newLearnData);
   const text = getPoemText(newLearnData);
-  return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+  return Reply.text({ text, tts: text + getDelaySendText(text) });
 });
 
-atLearn.command(/повтори.*(блок|блог)/gi, (ctx) => {
+atLearn.command(repeatBlockCommand, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   if (!learnData) return exitWithError(ctx, 'learnData not found');
   console.log('repeat poem');
   const newLearnData: ILearnData = { ...learnData, textType: 'block' };
   saveLearnData(ctx.session, newLearnData);
   const text = getPoemText(newLearnData);
-  return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+  return Reply.text({ text, tts: text + getDelaySendText(text) });
 });
 
-atLearn.command(/повтори/, (ctx) => {
+atLearn.command(repeatCommand, (ctx) => {
   const learnData = getOldLearnData(ctx.session);
   if (!learnData) return exitWithError(ctx, 'learnData not found');
   console.log('repeat');
   const text = getPoemText(learnData);
-  return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+  return Reply.text({ text, tts: text + getDelaySendText(text) });
 });
 
 atLearn.command(...exitHandler);

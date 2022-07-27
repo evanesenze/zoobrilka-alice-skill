@@ -3,13 +3,10 @@ import { SET_AUTHOR_SCENE, SET_TITLE_SCENE, addSceneHistory, backHandler, exitHa
 
 const atSetAuthor = new Scene(SET_AUTHOR_SCENE);
 
-atSetAuthor.command(...exitHandler);
+const nextCommand = /дальше|далее|потом|следующее|вперед|перейти.*к.*следующему|следующий|дальнейший/;
+const skipCommand = /пропусти|пропуск|опустить/;
 
-atSetAuthor.command(...backHandler);
-
-atSetAuthor.command(...helpHandler);
-
-atSetAuthor.command(/дальше|далее/gi, (ctx) => {
+atSetAuthor.command(nextCommand, (ctx) => {
   const findData = getFindData(ctx.session);
   if (!findData?.author) return Reply.text('Автор не задан. Скажите "Пропустить", если не хотите указывать автора.');
   addSceneHistory(ctx.session, SET_TITLE_SCENE);
@@ -17,12 +14,18 @@ atSetAuthor.command(/дальше|далее/gi, (ctx) => {
   return Reply.text(`Автор ${getAuthorName(findData.author)} задан. Теперь скажи название.`);
 });
 
-atSetAuthor.command(/пропусти/gi, (ctx) => {
+atSetAuthor.command(skipCommand, (ctx) => {
   addSceneHistory(ctx.session, SET_TITLE_SCENE);
   saveFindData(ctx.session, { author: null, title: '', poems: [], items: [] });
   ctx.enter(SET_TITLE_SCENE);
   return Reply.text('Скажи название.');
 });
+
+atSetAuthor.command(...exitHandler);
+
+atSetAuthor.command(...backHandler);
+
+atSetAuthor.command(...helpHandler);
 
 atSetAuthor.any(async (ctx) => {
   const entities = ctx.nlu?.entities;

@@ -3,6 +3,7 @@ import { IApiEntity, IApiEntityYandexFio } from 'yandex-dialogs-sdk/dist/api/nlu
 import { CommandDeclaration } from 'yandex-dialogs-sdk/dist/command/command';
 import { TextReplyDeclaration } from 'yandex-dialogs-sdk/dist/reply/textReplyBuilder';
 import { cleanLog } from '../Base';
+import readingTime from 'reading-time';
 import { sample } from 'lodash';
 
 type IHandlerType = [declaration: CommandDeclaration<IStageContext>, callback: CommandCallback<IStageContext>];
@@ -12,6 +13,7 @@ interface IApiEntityYandexFioNew extends IApiEntityYandexFio {
 }
 
 const ROWS_COUNT = 2;
+const WORDS_PER_MINUTE = 80;
 
 const LEARN_SCENE: SceneType = 'LEARN_SCENE';
 const SET_AUTHOR_SCENE: SceneType = 'SET_AUTHOR_SCENE';
@@ -199,15 +201,23 @@ const getNewLearnData = (poem: IPoem, textType: PoemTextType, currentBlockIndex 
 
 const saveLearnData = (session: ISession, data: ILearnData) => session.set('learnData', data); // !
 
+const getDelaySendText = (text: string, isEnd?: boolean): string => {
+  const delay = getTextReadingMs(text);
+  console.log(delay);
+  const end = isEnd ? 'завершению' : 'следующей строке';
+  return `sil <[${delay}]> Скажи "Дальше", чтобы перейти к ${end}`;
+};
+
 const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
   const { currentBlock, currentRow, poem, poemСomplited } = learnData;
   if (currentRow.isLast && currentBlock.learnedRows.includes(currentRow.index)) {
     if (currentBlock.isLast) {
       console.log('currentBlock is last');
       if (!poemСomplited) {
-        const text = 'Повтори стих целиком.\n\n' + getPoemText({ ...learnData, textType: 'full' });
+        const poemText = getPoemText({ ...learnData, textType: 'full' });
+        const text = 'Повтори стих целиком.\n\n' + poemText;
         saveLearnData(ctx.session, { ...learnData, poemСomplited: true });
-        return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к завершению' });
+        return Reply.text({ text, tts: text + getDelaySendText(poemText, true) });
       } else {
         deleteLearnData(ctx.session);
         deleteFindData(ctx.session);
@@ -223,37 +233,35 @@ const goLearnNext = (ctx: IStageContext, learnData: ILearnData) => {
       console.log('currentBlock is not complited');
       const nextLearnData = { ...learnData, currentBlock, textType: 'full' } as ILearnData;
       saveLearnData(ctx.session, nextLearnData);
-      const text = 'Молодец! Блок закончен, теперь повтори его полностью.\n\n' + getPoemText(nextLearnData);
-      return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+      const poemText = getPoemText(nextLearnData);
+      const text = 'Молодец! Блок закончен, теперь повтори его полностью.\n\n' + poemText;
+      return Reply.text({ text, tts: text + getDelaySendText(poemText) });
     } else {
       const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index + 1, 0);
-      if (!nextLearnData) {
-        ctx.enter('');
-        return Reply.text('вернулись в меню');
-      }
+      if (!nextLearnData) return exitWithError(ctx, 'nextLearnData not found');
       saveLearnData(ctx.session, nextLearnData);
-      const text = 'Повтори новую строку.\n\n' + getPoemText(nextLearnData);
-      return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+      const poemText = getPoemText(nextLearnData);
+      const text = 'Повтори новую строку.\n\n' + poemText;
+      return Reply.text({ text, tts: text + getDelaySendText(poemText) });
     }
   } else {
     console.log('next row');
     if (currentBlock.learnedRows.includes(currentRow.index)) {
       console.log('new row');
       const nextLearnData = getNewLearnData(poem, 'row', currentBlock.index, currentRow.index + 1);
-      if (!nextLearnData) {
-        ctx.leave();
-        return Reply.text('Переход в меню');
-      }
+      if (!nextLearnData) return exitWithError(ctx, 'nextLearnData not found');
       saveLearnData(ctx.session, nextLearnData);
-      const text = 'Повтори новую строку.\n\n' + getPoemText(nextLearnData);
-      return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+      const poemText = getPoemText(nextLearnData);
+      const text = 'Повтори новую строку.\n\n' + poemText;
+      return Reply.text({ text, tts: text + getDelaySendText(poemText) });
     } else {
       currentBlock.learnedRows.push(currentRow.index);
       console.log('repeat block');
       const nextLearnData = { ...learnData, currentBlock, textType: 'block' } as ILearnData;
       saveLearnData(ctx.session, nextLearnData);
-      const text = 'Повтори уже выученые строки.\n\n' + getPoemText(nextLearnData);
-      return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+      const poemText = getPoemText(nextLearnData);
+      const text = 'Повтори уже выученые строки.\n\n' + poemText;
+      return Reply.text({ text, tts: text + getDelaySendText(poemText) });
     }
   }
 };
@@ -281,6 +289,11 @@ const exitWithError = (ctx: IStageContext, error: unknown) => {
   const messages: string[] = ['Сейчас вы не можете это сделать'];
   const message = String(sample(messages));
   return Reply.text(message);
+};
+
+const getTextReadingMs = (text: string) => {
+  const { time } = readingTime(text, { wordsPerMinute: WORDS_PER_MINUTE });
+  return time;
 };
 
 export {
@@ -312,4 +325,5 @@ export {
   saveFindData,
   deleteFindData,
   cleanSceneHistory,
+  getDelaySendText,
 };

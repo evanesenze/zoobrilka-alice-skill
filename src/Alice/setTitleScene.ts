@@ -17,7 +17,7 @@ atSetTitle.any(async (ctx) => {
   if (entities?.length && findData.items.length) {
     const numbers = entities.filter((item) => item.type === 'YANDEX.NUMBER');
     if (numbers.length) {
-      if (!findData) return Reply.text('error');
+      if (!findData) return exitWithError(ctx, 'findData not found');
       const { poems } = findData;
       const itemNumbers = poems.map((_, i) => i + 1);
       const currentNumber = numbers.find((item) => itemNumbers.includes(Number(item.value)))?.value;
@@ -25,10 +25,7 @@ atSetTitle.any(async (ctx) => {
       if (selectedPoemId !== -1) {
         const poem = poems[selectedPoemId];
         const newLearnData = getNewLearnData(poem, 'full', -1, -1);
-        if (!newLearnData) {
-          ctx.leave();
-          return Reply.text('Вышли назад');
-        }
+        if (!newLearnData) return exitWithError(ctx, 'newLearnData not found');
         saveFindData(ctx.session, { ...findData, selectedPoemId });
         const poemText = getPoemText(newLearnData);
         const text = `Ты выбрал ${getAuthorName(poem.author)} - ${poem.title}.\n\n`;
@@ -39,17 +36,13 @@ atSetTitle.any(async (ctx) => {
     }
   }
   const poems = await searchPoems(findData?.author ?? undefined, ctx.message);
-  let text = `Автор: ${findData?.author ? getAuthorName(findData.author) : 'Не задан'}.
-Название: ${ctx.message}.`;
   if (poems.length) {
-    const items = poems.map(({ title, author }, i) => `${i + 1}). ${getAuthorName(author, true)} - ${title}.`.substring(0, 128));
-    const itemsText = items.reduce((res, item) => (res += `\n${item}`), '\nВот что я нашел:');
-    text += itemsText + '\nДля выбора назови номер стиха.';
+    const items = poems.map(({ title, author }, i) => `${i + 1}). ${getAuthorName(author, true)} - ${title}.`);
+    const text = items.reduce((res, item) => (res += `\n${item}`), '\nВот что я нашел:') + '\nНазови номер стиха, для выбора, или новое название, для поиска.';
     saveFindData(ctx.session, { ...findData, title: ctx.message, poems, items });
     return Reply.text(text);
   } else {
-    text += '\nНичего не смог найти. Скажи название по-другому';
-    return Reply.text({ text });
+    return Reply.text('Ничего не смог найти. Скажи название по-другому');
   }
 });
 

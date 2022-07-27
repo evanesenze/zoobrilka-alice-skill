@@ -14,10 +14,9 @@ const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
 const extras_1 = require("./extras");
 const atSetAuthor = new yandex_dialogs_sdk_1.Scene(extras_1.SET_AUTHOR_SCENE);
 exports.atSetAuthor = atSetAuthor;
-atSetAuthor.command(...extras_1.exitHandler);
-atSetAuthor.command(...extras_1.backHandler);
-atSetAuthor.command(...extras_1.helpHandler);
-atSetAuthor.command(/дальше|далее/gi, (ctx) => {
+const nextCommand = /дальше|далее|потом|следующее|вперед|перейти.*к.*следующему|следующий|дальнейший/;
+const skipCommand = /пропусти|пропуск|опустить/;
+atSetAuthor.command(nextCommand, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);
     if (!(findData === null || findData === void 0 ? void 0 : findData.author))
         return yandex_dialogs_sdk_1.Reply.text('Автор не задан. Скажите "Пропустить", если не хотите указывать автора.');
@@ -25,12 +24,15 @@ atSetAuthor.command(/дальше|далее/gi, (ctx) => {
     ctx.enter(extras_1.SET_TITLE_SCENE);
     return yandex_dialogs_sdk_1.Reply.text(`Автор ${(0, extras_1.getAuthorName)(findData.author)} задан. Теперь скажи название.`);
 });
-atSetAuthor.command(/пропусти/gi, (ctx) => {
+atSetAuthor.command(skipCommand, (ctx) => {
     (0, extras_1.addSceneHistory)(ctx.session, extras_1.SET_TITLE_SCENE);
     (0, extras_1.saveFindData)(ctx.session, { author: null, title: '', poems: [], items: [] });
     ctx.enter(extras_1.SET_TITLE_SCENE);
     return yandex_dialogs_sdk_1.Reply.text('Скажи название.');
 });
+atSetAuthor.command(...extras_1.exitHandler);
+atSetAuthor.command(...extras_1.backHandler);
+atSetAuthor.command(...extras_1.helpHandler);
 atSetAuthor.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const entities = (_a = ctx.nlu) === null || _a === void 0 ? void 0 : _a.entities;

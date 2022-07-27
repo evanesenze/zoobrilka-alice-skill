@@ -6,10 +6,11 @@ const yandex_dialogs_sdk_1 = require("yandex-dialogs-sdk");
 const lodash_1 = require("lodash");
 const atPoemScene = new yandex_dialogs_sdk_1.Scene(extras_1.POEM_SCENE);
 exports.atPoemScene = atPoemScene;
-atPoemScene.command(...extras_1.exitHandler);
-atPoemScene.command(...extras_1.backHandler);
-atPoemScene.command(...extras_1.helpHandler);
-atPoemScene.command(/прочитай|читай|прочитать/, (ctx) => {
+const startLearnCommand = /начать|старт|начало|начинаем|открыть|приступить|обновить|сделать|пойти|пуск|запуск/;
+const voicePoemCommand = /прочитай|прочти|зачитай|читай|читать|произнеси|прочитать|изложи|изложить/;
+const leranCommand = /продолжи|учи|зубрить|запоминать/;
+const findCommand = /новый|новое|другое|найти|поиск|искать|ищи|найди|ищу|отыскать/;
+atPoemScene.command(voicePoemCommand, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);
     if (!findData)
         return (0, extras_1.exitWithError)(ctx, 'findData not found');
@@ -22,13 +23,13 @@ atPoemScene.command(/прочитай|читай|прочитать/, (ctx) => {
     const poemText = (0, extras_1.getPoemText)(newLearnData);
     return yandex_dialogs_sdk_1.Reply.text({ text: poemText, tts: poemText + '.Что хотите делать дальше?' });
 });
-atPoemScene.command(/учить/, () => {
+atPoemScene.command(leranCommand, () => {
     return yandex_dialogs_sdk_1.Reply.text(`Я буду произносить строку и давать время на ее повторение.
 По команде "Дальше", мы перейдем к следующей строке.
 По командам: "Повтори","Повтори блок" или "Повтори стих", я повторю текст еще раз.
 Скажи "Начать", чтобы преступить к заучиванию.`);
 });
-atPoemScene.command(/начать/, (ctx) => {
+atPoemScene.command(startLearnCommand, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);
     if (!findData)
         return (0, extras_1.exitWithError)(ctx, 'findData not found');
@@ -44,7 +45,7 @@ atPoemScene.command(/начать/, (ctx) => {
     ctx.enter(extras_1.LEARN_SCENE);
     return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
-atPoemScene.command(/поиск/, (ctx) => {
+atPoemScene.command(findCommand, (ctx) => {
     (0, extras_1.deleteFindData)(ctx.session);
     const text = String((0, lodash_1.sample)(extras_1.sceneMessages[extras_1.SET_AUTHOR_SCENE]));
     (0, extras_1.cleanSceneHistory)(ctx.session);
@@ -52,4 +53,7 @@ atPoemScene.command(/поиск/, (ctx) => {
     ctx.enter(extras_1.SET_AUTHOR_SCENE);
     return yandex_dialogs_sdk_1.Reply.text(text);
 });
+atPoemScene.command(...extras_1.exitHandler);
+atPoemScene.command(...extras_1.backHandler);
+atPoemScene.command(...extras_1.helpHandler);
 atPoemScene.any(extras_1.helpHandler[1]);

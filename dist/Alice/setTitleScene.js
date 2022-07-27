@@ -28,7 +28,7 @@ atSetTitle.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
         const numbers = entities.filter((item) => item.type === 'YANDEX.NUMBER');
         if (numbers.length) {
             if (!findData)
-                return yandex_dialogs_sdk_1.Reply.text('error');
+                return (0, extras_1.exitWithError)(ctx, 'findData not found');
             const { poems } = findData;
             const itemNumbers = poems.map((_, i) => i + 1);
             const currentNumber = (_b = numbers.find((item) => itemNumbers.includes(Number(item.value)))) === null || _b === void 0 ? void 0 : _b.value;
@@ -36,10 +36,8 @@ atSetTitle.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
             if (selectedPoemId !== -1) {
                 const poem = poems[selectedPoemId];
                 const newLearnData = (0, extras_1.getNewLearnData)(poem, 'full', -1, -1);
-                if (!newLearnData) {
-                    ctx.leave();
-                    return yandex_dialogs_sdk_1.Reply.text('Вышли назад');
-                }
+                if (!newLearnData)
+                    return (0, extras_1.exitWithError)(ctx, 'newLearnData not found');
                 (0, extras_1.saveFindData)(ctx.session, Object.assign(Object.assign({}, findData), { selectedPoemId }));
                 const poemText = (0, extras_1.getPoemText)(newLearnData);
                 const text = `Ты выбрал ${(0, extras_1.getAuthorName)(poem.author)} - ${poem.title}.\n\n`;
@@ -50,17 +48,13 @@ atSetTitle.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
         }
     }
     const poems = yield (0, Base_1.searchPoems)((_c = findData === null || findData === void 0 ? void 0 : findData.author) !== null && _c !== void 0 ? _c : undefined, ctx.message);
-    let text = `Автор: ${(findData === null || findData === void 0 ? void 0 : findData.author) ? (0, extras_1.getAuthorName)(findData.author) : 'Не задан'}.
-Название: ${ctx.message}.`;
     if (poems.length) {
-        const items = poems.map(({ title, author }, i) => `${i + 1}). ${(0, extras_1.getAuthorName)(author, true)} - ${title}.`.substring(0, 128));
-        const itemsText = items.reduce((res, item) => (res += `\n${item}`), '\nВот что я нашел:');
-        text += itemsText + '\nДля выбора назови номер стиха.';
+        const items = poems.map(({ title, author }, i) => `${i + 1}). ${(0, extras_1.getAuthorName)(author, true)} - ${title}.`);
+        const text = items.reduce((res, item) => (res += `\n${item}`), '\nВот что я нашел:') + '\nНазови номер стиха, для выбора, или новое название, для поиска.';
         (0, extras_1.saveFindData)(ctx.session, Object.assign(Object.assign({}, findData), { title: ctx.message, poems, items }));
         return yandex_dialogs_sdk_1.Reply.text(text);
     }
     else {
-        text += '\nНичего не смог найти. Скажи название по-другому';
-        return yandex_dialogs_sdk_1.Reply.text({ text });
+        return yandex_dialogs_sdk_1.Reply.text('Ничего не смог найти. Скажи название по-другому');
     }
 }));

@@ -28,16 +28,22 @@ import { sample } from 'lodash';
 
 const alice = new Alice();
 
+const findCommand = /новый|новое|другое|найти|поиск|искать|ищи|найди|ищу|отыскать/;
+const leranCommand = /продолжи|учи|зубрить|запоминать/;
+const recordCommand = /запомни|запиши|запись|записать|диктофон|аудиозапись|записывать|запишет|запомнить/;
+const dayPoemCommand = /стих дня|стихотворение дня/;
+
 alice.command('', (ctx) => {
   const c = ctx as IStageContext;
   const learnData = getOldLearnData(c.session);
   return Reply.text(`Добро пожаловать в "Зубрилку".
 ${sample(['Здесь ты можешь выучить стихотворение.', 'Я помогу тебе выучить стихотворение.'])}${learnData ? "\nСкажи 'Учить', чтобы продолжить учить." : ''}
 Скажи 'Найти', чтобы начать поиск стиха.
+Скажи 'Cтих дня', чтобы посмотреть стих дня.
 Скажи 'Помощь' в любом месте, чтобы получить помощь.`);
 });
 
-alice.command(/новый|новое|другое|найти|поиск|искать/gi, (ctx) => {
+alice.command(findCommand, (ctx) => {
   const c = ctx as IStageContext;
   addSceneHistory(c.session, SET_AUTHOR_SCENE);
   c.enter(SET_AUTHOR_SCENE);
@@ -45,7 +51,7 @@ alice.command(/новый|новое|другое|найти|поиск|иска
   return Reply.text(message);
 });
 
-alice.command(/учить|продолжи/gi, (ctx) => {
+alice.command(leranCommand, (ctx) => {
   const c = ctx as IStageContext;
   const learnData = getOldLearnData(c.session);
   if (!learnData) {
@@ -63,13 +69,11 @@ ${poemText}`;
   return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 
-alice.command(/запомни|запиши|запись|записать|запомнить/gi, () =>
+alice.command(recordCommand, () =>
   Reply.text('К сожалению, я не умею записывать ваш голос. Перейди на сайт', { buttons: [Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://www.google.com' })] })
 );
 
-alice.command(/расскажи|умеешь|не/gi, async (ctx) => helpHandler[1](ctx as IStageContext));
-
-alice.command(/стих дня/gi, async (ctx) => {
+alice.command(dayPoemCommand, async (ctx) => {
   const c = ctx as IStageContext;
   const poem = await getTodayPoem();
   if (!poem) return Reply.text('К сожалению, сегодня не день стихов');
@@ -93,12 +97,7 @@ alice.command(...(exitHandler as [declaration: CommandDeclaration<IContext>, cal
 
 alice.command(...(helpHandler as [declaration: CommandDeclaration<IContext>, callback: CommandCallback<IContext>]));
 
-alice.any((ctx) => {
-  const c = ctx as IStageContext;
-  const currentScene = getCurrentScene(c.session);
-  const hint = String(sample(sceneHints[currentScene]));
-  return Reply.text(hint);
-});
+alice.any(() => Reply.text(String(sample(sceneHints['MENU']))));
 
 alice.on('response', (ctx) => {
   const c = ctx as IStageContext;

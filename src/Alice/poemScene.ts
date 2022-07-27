@@ -20,13 +20,12 @@ import { sample } from 'lodash';
 
 const atPoemScene = new Scene(POEM_SCENE);
 
-atPoemScene.command(...exitHandler);
+const startLearnCommand = /начать|старт|начало|начинаем|открыть|приступить|обновить|сделать|пойти|пуск|запуск/;
+const voicePoemCommand = /прочитай|прочти|зачитай|читай|читать|произнеси|прочитать|изложи|изложить/;
+const leranCommand = /продолжи|учи|зубрить|запоминать/;
+const findCommand = /новый|новое|другое|найти|поиск|искать|ищи|найди|ищу|отыскать/;
 
-atPoemScene.command(...backHandler);
-
-atPoemScene.command(...helpHandler);
-
-atPoemScene.command(/прочитай|читай|прочитать/, (ctx) => {
+atPoemScene.command(voicePoemCommand, (ctx) => {
   const findData = getFindData(ctx.session);
   if (!findData) return exitWithError(ctx, 'findData not found');
   const { selectedPoemId, poems } = findData;
@@ -37,14 +36,14 @@ atPoemScene.command(/прочитай|читай|прочитать/, (ctx) => {
   return Reply.text({ text: poemText, tts: poemText + '.Что хотите делать дальше?' });
 });
 
-atPoemScene.command(/учить/, () => {
+atPoemScene.command(leranCommand, () => {
   return Reply.text(`Я буду произносить строку и давать время на ее повторение.
 По команде "Дальше", мы перейдем к следующей строке.
 По командам: "Повтори","Повтори блок" или "Повтори стих", я повторю текст еще раз.
 Скажи "Начать", чтобы преступить к заучиванию.`);
 });
 
-atPoemScene.command(/начать/, (ctx) => {
+atPoemScene.command(startLearnCommand, (ctx) => {
   const findData = getFindData(ctx.session);
   if (!findData) return exitWithError(ctx, 'findData not found');
   const { selectedPoemId, poems } = findData;
@@ -58,7 +57,7 @@ atPoemScene.command(/начать/, (ctx) => {
   return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
 });
 
-atPoemScene.command(/поиск/, (ctx) => {
+atPoemScene.command(findCommand, (ctx) => {
   deleteFindData(ctx.session);
   const text = String(sample(sceneMessages[SET_AUTHOR_SCENE]));
   cleanSceneHistory(ctx.session);
@@ -66,6 +65,12 @@ atPoemScene.command(/поиск/, (ctx) => {
   ctx.enter(SET_AUTHOR_SCENE);
   return Reply.text(text);
 });
+
+atPoemScene.command(...exitHandler);
+
+atPoemScene.command(...backHandler);
+
+atPoemScene.command(...helpHandler);
 
 atPoemScene.any(helpHandler[1]);
 
