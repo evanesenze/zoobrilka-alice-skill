@@ -8,7 +8,6 @@ import {
   exitHandler,
   getAllSessionData,
   getAuthorName,
-  getCurrentScene,
   getNewLearnData,
   getOldLearnData,
   getPoemText,

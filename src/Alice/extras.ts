@@ -13,7 +13,7 @@ interface IApiEntityYandexFioNew extends IApiEntityYandexFio {
 }
 
 const ROWS_COUNT = 2;
-const WORDS_PER_MINUTE = 80;
+const WORDS_PER_MINUTE = 40;
 
 const LEARN_SCENE: SceneType = 'LEARN_SCENE';
 const SET_AUTHOR_SCENE: SceneType = 'SET_AUTHOR_SCENE';

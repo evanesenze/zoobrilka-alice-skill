@@ -38,7 +38,7 @@ atSetTitle.any(async (ctx) => {
   const poems = await searchPoems(findData?.author ?? undefined, ctx.message);
   if (poems.length) {
     const items = poems.map(({ title, author }, i) => `${i + 1}). ${getAuthorName(author, true)} - ${title}.`);
-    const text = items.reduce((res, item) => (res += `\n${item}`), '\nВот что я нашел:') + '\nНазови номер стиха, для выбора, или новое название, для поиска.';
+    const text = items.reduce((res, item) => (res += `\n${item}`), 'Вот что я нашел:') + '\nНазови номер стиха, для выбора, или новое название, для поиска.';
     saveFindData(ctx.session, { ...findData, title: ctx.message, poems, items });
     return Reply.text(text);
   } else {

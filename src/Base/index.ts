@@ -242,20 +242,46 @@ const reshuffleTodayPoemId = async () => {
   } while (!(await poemIsExists(todayPoemId)));
   console.log('todayPoemId >', todayPoemId);
 };
+
 // const test = async () => {
 //   for (let i = 1; i < 48823; i++) {
 //     const poem = await getPoem(String(i));
+//     console.log(`${i}.)`);
 //     if (!poem) {
-//       console.log(`${i}.) not found`);
+//       console.log(' not found');
 //       continue;
 //     }
-//     const authorName = poem.author.split(' ');
-//     const author = {
-//       firstName: authorName[0],
-//       lastName: authorName[1],
-//     };
-//     savePoem({ ...poem, author });
-//     console.log(`${i}.) done`);
+//     // if (!poem.author?.firstName || !poem.author?.lastName) {
+//     //   console.log(' bad author');
+//     //   const author = (poem.author as unknown as string).split(' ');
+//     //   const newA: IAuthor = { firstName: author[0], lastName: author[1] ?? null };
+//     //   poem.author = newA;
+//     // }
+//     // if (poem.author.firstName.includes('ё')) {
+//     //   console.log(' firstName includes ё');
+//     //   poem.author.firstName = poem.author.firstName.replace(/ё/gi, 'е');
+//     // }
+//     // if (poem.author.lastName?.includes('ё')) {
+//     //   console.log(' lastName includes ё');
+//     //   poem.author.lastName = poem.author.lastName.replace(/ё/gi, 'е');
+//     // }
+//     // if (poem.queryTitle?.includes('ё')) {
+//     //   console.log(' queryTitle includes ё');
+//     //   poem.queryTitle = poem.queryTitle.replace(/ё/gi, 'е');
+//     // }
+//     if (poem.text.includes('\n\nИсточник:')) {
+//       console.log(' have Источник');
+//       poem.text = poem.text.split('\n\nИсточник:')[0];
+//     } // сохраннение gameDatas при логировании
+
+//     if (poem.text.length > 850) {
+//       console.log(' long');
+//       poem.isLong = true;
+//     } else {
+//       poem.isLong = null as unknown as undefined;
+//     }
+//     savePoem({ ...poem });
+//     console.log(' done');
 //   }
 // };
 

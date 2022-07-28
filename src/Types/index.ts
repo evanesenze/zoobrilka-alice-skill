@@ -6,7 +6,7 @@ type IPoemRecordVotes = Record<string, number>;
 
 interface IAuthor {
   firstName: string;
-  lastName: string;
+  lastName?: string;
 }
 
 interface IPoem {
@@ -16,6 +16,8 @@ interface IPoem {
   text: string;
   tags: Record<string, boolean>;
   id: number;
+  isLong?: boolean;
+  queryTitle?: string;
 }
 
 interface IPoemRecord {

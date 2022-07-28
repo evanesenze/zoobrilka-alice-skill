@@ -49,7 +49,7 @@ atSetTitle.any((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const poems = yield (0, Base_1.searchPoems)((_c = findData === null || findData === void 0 ? void 0 : findData.author) !== null && _c !== void 0 ? _c : undefined, ctx.message);
     if (poems.length) {
         const items = poems.map(({ title, author }, i) => `${i + 1}). ${(0, extras_1.getAuthorName)(author, true)} - ${title}.`);
-        const text = items.reduce((res, item) => (res += `\n${item}`), '\nВот что я нашел:') + '\nНазови номер стиха, для выбора, или новое название, для поиска.';
+        const text = items.reduce((res, item) => (res += `\n${item}`), 'Вот что я нашел:') + '\nНазови номер стиха, для выбора, или новое название, для поиска.';
         (0, extras_1.saveFindData)(ctx.session, Object.assign(Object.assign({}, findData), { title: ctx.message, poems, items }));
         return yandex_dialogs_sdk_1.Reply.text(text);
     }
