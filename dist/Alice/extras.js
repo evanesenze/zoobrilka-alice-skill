@@ -393,13 +393,15 @@ const getNewGame2Data = (gamesData) => {
         .reduce((acc, item) => {
         var _a;
         const originalText = item.join('\n');
-        const words = [...((_a = originalText.match(/([А-я]+)/gi)) !== null && _a !== void 0 ? _a : [])];
-        console.log(words);
+        const words = [...((_a = originalText.replace(/ё/gi, 'е').match(/([А-я]+)/gi)) !== null && _a !== void 0 ? _a : [])].map((item) => item.toLowerCase());
         if (words.length < 3)
             return acc;
         const replacingWordsCount = Math.floor(words.length * 0.4);
-        const replacingWords = [...words].sort(() => Math.random() - 0.5).slice(0, replacingWordsCount);
-        const replacedText = replacingWords.reduce((res, word) => res.replace(new RegExp(`(?<=^| )${word}(?=$| )`), '_'.repeat(word.length)), originalText);
+        const replacingWords = [...words]
+            .filter((item) => item.length > 3)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, replacingWordsCount);
+        const replacedText = replacingWords.reduce((res, word) => res.replace(new RegExp(`(?<=^| )${word}(?=$|\\W)`, 'i'), '_'.repeat(word.length)), originalText);
         acc.push({ originalText, replacedText, words });
         return acc;
     }, [])

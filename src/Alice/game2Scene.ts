@@ -13,6 +13,8 @@ atGame2.command(...helpHandler);
 atGame2.any((ctx) => {
   const gameData = getGame2Data(ctx.session);
   if (!gameData) return exitWithError(ctx, 'gameData not found');
+  console.log(ctx.message);
+  console.log(gameData.currentItem.words.join(' '));
   const rate = levenshtein.similarity(ctx.message, gameData.currentItem.words.join(' '));
   let userScore = gameData.userScore;
   if (rate > 0.8) userScore += 1;
