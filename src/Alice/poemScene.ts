@@ -73,7 +73,7 @@ atPoemScene.command(findCommand, (ctx) => {
 });
 
 atPoemScene.command(recordCommand, () => {
-  const buttons = [Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://zoobrilka-app.web.app/' })];
+  const buttons = [Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://zoobrilka-skill.web.app/' })];
   return Reply.text('К сожалению, я не умею записывать голос. Перейди на сайт: zoobrilka-app.web.app', { buttons });
 });
 

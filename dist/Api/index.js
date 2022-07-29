@@ -40,7 +40,8 @@ const axios_1 = __importDefault(require("axios"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const express_fileupload_1 = __importDefault(require("express-fileupload"));
-const swagger_json_1 = __importDefault(require("./swagger.json"));
+// import swaggerDoc from './swagger.json';
+const swagger_dev_json_1 = __importDefault(require("./swagger.dev.json"));
 const app = (0, express_1.default)();
 exports.app = app;
 const auth = Buffer.from('250a4b68f4b9439696580f24d1daa8f7:2e25c4b9ec6e4cd6931018051362a96b').toString('base64');
@@ -105,16 +106,17 @@ app.get('/api/poem/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
 }));
 // Возвращает записи стиха
 app.get('/api/records/:poemId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { poemId } = req.params;
     const { offset } = req.query;
-    const response = yield (0, Base_1.getPoemRecords)(poemId, offset !== null && offset !== void 0 ? offset : 0);
+    const response = yield (0, Base_1.getPoemRecords)(poemId, (_a = Number(offset)) !== null && _a !== void 0 ? _a : 0);
     return res.send({ response });
 }));
 // Возвращает записи стихов
 app.get('/api/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _b;
     const { offset } = req.query;
-    const response = yield (0, Base_1.getAllPoemRecords)((_a = Number(offset)) !== null && _a !== void 0 ? _a : 0);
+    const response = yield (0, Base_1.getAllPoemRecords)((_b = Number(offset)) !== null && _b !== void 0 ? _b : 0);
     return res.send({ response });
 }));
 // RECORD
@@ -169,7 +171,7 @@ app.post('/api/record/:id/vote', needAuth, (req, res) => __awaiter(void 0, void 
 }));
 // USER
 app.get('/api/user/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b;
+    var _c;
     const { code } = req.query;
     if (!code)
         return res.status(400).send({ error: { message: 'Parameter "code" is empty' } });
@@ -178,7 +180,7 @@ app.get('/api/user/login', (req, res) => __awaiter(void 0, void 0, void 0, funct
         return res.status(401).send({ error });
     const { access_token, expires_in } = response;
     signedTokens.push(access_token);
-    const origin = (_b = req.headers.origin) !== null && _b !== void 0 ? _b : '*';
+    const origin = (_c = req.headers.origin) !== null && _c !== void 0 ? _c : '*';
     console.log(origin);
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.cookie('accessToken', access_token, { path: '/', signed: true, maxAge: expires_in, httpOnly: true, secure: true, sameSite: 'none' });
@@ -205,8 +207,9 @@ app.get('/api/user/:id/records', (req, res) => __awaiter(void 0, void 0, void 0,
 }));
 // Возвращает топ юзеров и их записей
 app.get('/api/users/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _d;
     const { poemId, offset } = req.query;
-    const response = yield (0, Base_1.getAllUserRecords)(offset !== null && offset !== void 0 ? offset : 0, poemId);
+    const response = yield (0, Base_1.getAllUserRecords)((_d = Number(offset)) !== null && _d !== void 0 ? _d : 0, poemId);
     return res.send({ response });
 }));
 // EXTRA
@@ -216,7 +219,7 @@ app.get('/api/search', (req, res) => __awaiter(void 0, void 0, void 0, function*
     return res.send({ response });
 }));
 app.get('/wakeup', (req, res) => res.send('OK'));
-app.use('/swagger', swagger_ui_express_1.serve, (0, swagger_ui_express_1.setup)(swagger_json_1.default));
+app.use('/swagger', swagger_ui_express_1.serve, (0, swagger_ui_express_1.setup)(swagger_dev_json_1.default));
 app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield Alice_1.alice.handleRequest(req.body);
     return res.send(result);

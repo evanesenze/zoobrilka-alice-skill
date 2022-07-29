@@ -20,8 +20,8 @@ import axios from 'axios';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import fileupload from 'express-fileupload';
-import swaggerDoc from './swagger.json';
-// import swaggerDoc from './swagger.dev.json';
+// import swaggerDoc from './swagger.json';
+import swaggerDoc from './swagger.dev.json';
 
 interface UserRequest extends Request {
   accessToken?: string;
@@ -104,8 +104,8 @@ app.get('/api/poem/:id', async (req, res) => {
 // Возвращает записи стиха
 app.get('/api/records/:poemId', async (req, res) => {
   const { poemId } = req.params as { poemId: string };
-  const { offset } = req.query as { offset?: number };
-  const response = await getPoemRecords(poemId, offset ?? 0);
+  const { offset } = req.query as { offset?: string };
+  const response = await getPoemRecords(poemId, Number(offset) ?? 0);
   return res.send({ response });
 });
 // Возвращает записи стихов
@@ -190,8 +190,8 @@ app.get('/api/user/:id/records', async (req, res) => {
 });
 // Возвращает топ юзеров и их записей
 app.get('/api/users/records', async (req, res) => {
-  const { poemId, offset } = req.query as { poemId?: string; offset?: number };
-  const response = await getAllUserRecords(offset ?? 0, poemId);
+  const { poemId, offset } = req.query as { poemId?: string; offset?: string };
+  const response = await getAllUserRecords(Number(offset) ?? 0, poemId);
   return res.send({ response });
 });
 

@@ -57,7 +57,7 @@ atPoemScene.command(findCommand, (ctx) => {
     return yandex_dialogs_sdk_1.Reply.text(text);
 });
 atPoemScene.command(recordCommand, () => {
-    const buttons = [yandex_dialogs_sdk_1.Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://zoobrilka-app.web.app/' })];
+    const buttons = [yandex_dialogs_sdk_1.Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://zoobrilka-skill.web.app/' })];
     return yandex_dialogs_sdk_1.Reply.text('К сожалению, я не умею записывать голос. Перейди на сайт: zoobrilka-app.web.app', { buttons });
 });
 atPoemScene.command(gameCommand, (ctx) => {
