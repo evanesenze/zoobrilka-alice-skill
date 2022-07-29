@@ -36,10 +36,8 @@ ${game1Data.currentPairedRow[0]}`;
         if (!game2Data)
             return yandex_dialogs_sdk_1.Reply.text('Данный стих не подходит для этой игры. Выберите другую.');
         (0, extras_1.saveGame2Data)(ctx.session, game2Data);
-        const text = `Вот текст блока, с закрытыми словами:
-    
-${game2Data.currentItem.replacedText}`;
-        return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[5000]> Скажи полный текст.' });
+        const text = 'Вот текст блока, с закрытыми словами:\n';
+        return yandex_dialogs_sdk_1.Reply.text({ text: text + game2Data.currentItem.replacedText, tts: text + game2Data.currentItem.replacedText.replace(/(_+)/g, 'Пропущенное слово.') + 'sil <[5000]> Скажи полный текст.' });
     }
     else {
         (0, extras_1.saveGamesData)(ctx.session, Object.assign(Object.assign({}, gamesData), { selectedGameId: undefined }));

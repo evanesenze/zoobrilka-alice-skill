@@ -26,8 +26,8 @@ atGame1.any((ctx) => {
 Игра закончена. Ты знаешь стих на ${Math.round((gameData.userScore / gameData.startPairedRowsCount) * 100)}%.
 
 Для начала новой игры, назови ее номер:
-1.)Продолжи строки.
-2.)Заполни пропуски.`);
+1.)Игра "Продолжи строки".
+2.)Игра "Заполни пропуски".`);
   }
   const currentPairedRow = gameData.pairedRows.pop()!;
   const text = `Твой текст совпал с оригиналом на ${Math.round(rate * 100)}%.

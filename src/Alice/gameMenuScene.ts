@@ -49,10 +49,8 @@ ${game1Data.currentPairedRow[0]}`;
     const game2Data = getNewGame2Data(gamesData);
     if (!game2Data) return Reply.text('Данный стих не подходит для этой игры. Выберите другую.');
     saveGame2Data(ctx.session, game2Data);
-    const text = `Вот текст блока, с закрытыми словами:
-    
-${game2Data.currentItem.replacedText}`;
-    return Reply.text({ text, tts: text + 'sil <[5000]> Скажи полный текст.' });
+    const text = 'Вот текст блока, с закрытыми словами:\n';
+    return Reply.text({ text: text + game2Data.currentItem.replacedText, tts: text + game2Data.currentItem.replacedText.replace(/(_+)/g, 'Пропущенное слово.') + 'sil <[5000]> Скажи полный текст.' });
   } else {
     saveGamesData(ctx.session, { ...gamesData, selectedGameId: undefined });
     return Reply.text('Выбранная игра недоступна. Выбери другую');
