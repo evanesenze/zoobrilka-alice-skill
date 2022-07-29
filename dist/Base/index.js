@@ -199,6 +199,7 @@ const getAllPoemRecords = (offset) => __awaiter(void 0, void 0, void 0, function
     const arr = Object.values(poemRecords)
         .sort((a, b) => b.rating - a.rating)
         .slice(offset, offset + 10);
+    console.log(arr);
     return arr;
 });
 exports.getAllPoemRecords = getAllPoemRecords;

@@ -200,6 +200,7 @@ const getAllPoemRecords = async (offset: number): Promise<IPoemRecord[]> => {
   const arr = Object.values(poemRecords)
     .sort((a, b) => b.rating - a.rating)
     .slice(offset, offset + 10);
+  console.log(arr);
   return arr;
 };
 

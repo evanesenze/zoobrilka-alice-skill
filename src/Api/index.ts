@@ -110,8 +110,8 @@ app.get('/api/records/:poemId', async (req, res) => {
 });
 // Возвращает записи стихов
 app.get('/api/records', async (req, res) => {
-  const { offset } = req.query as { offset?: number };
-  const response = await getAllPoemRecords(offset ?? 0);
+  const { offset } = req.query as { offset?: string };
+  const response = await getAllPoemRecords(Number(offset) ?? 0);
   return res.send({ response });
 });
 

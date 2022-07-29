@@ -112,8 +112,9 @@ app.get('/api/records/:poemId', (req, res) => __awaiter(void 0, void 0, void 0, 
 }));
 // Возвращает записи стихов
 app.get('/api/records', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { offset } = req.query;
-    const response = yield (0, Base_1.getAllPoemRecords)(offset !== null && offset !== void 0 ? offset : 0);
+    const response = yield (0, Base_1.getAllPoemRecords)((_a = Number(offset)) !== null && _a !== void 0 ? _a : 0);
     return res.send({ response });
 }));
 // RECORD
@@ -168,7 +169,7 @@ app.post('/api/record/:id/vote', needAuth, (req, res) => __awaiter(void 0, void 
 }));
 // USER
 app.get('/api/user/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _b;
     const { code } = req.query;
     if (!code)
         return res.status(400).send({ error: { message: 'Parameter "code" is empty' } });
@@ -177,7 +178,7 @@ app.get('/api/user/login', (req, res) => __awaiter(void 0, void 0, void 0, funct
         return res.status(401).send({ error });
     const { access_token, expires_in } = response;
     signedTokens.push(access_token);
-    const origin = (_a = req.headers.origin) !== null && _a !== void 0 ? _a : '*';
+    const origin = (_b = req.headers.origin) !== null && _b !== void 0 ? _b : '*';
     console.log(origin);
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.cookie('accessToken', access_token, { path: '/', signed: true, maxAge: expires_in, httpOnly: true, secure: true, sameSite: 'none' });
