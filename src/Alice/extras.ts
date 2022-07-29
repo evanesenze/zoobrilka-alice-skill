@@ -380,11 +380,12 @@ const getNewGame2Data = (gamesData: IGamesData): IGame2Data | null => {
     .reduce((acc, item) => {
       const originalText = item.join('\n');
       const words = [...(originalText.match(/([А-я]+)/gi) ?? [])];
+      console.log(words);
       if (words.length < 3) return acc;
       const replacingWordsCount = Math.floor(words.length * 0.4);
       const replacingWords = words.sort(() => Math.random() - 0.5).slice(0, replacingWordsCount);
-      const replacedText = replacingWords.reduce((res, word) => res.replace(word, '_'.repeat(word.length)), originalText);
-      acc.push({ originalText, replacedText });
+      const replacedText = replacingWords.reduce((res, word) => res.replace(new RegExp(`(?<=^| )${word}(?=$| )`), '_'.repeat(word.length)), originalText);
+      acc.push({ originalText, replacedText, words });
       return acc;
     }, [] as IGame2DataItem[])
     .reverse();

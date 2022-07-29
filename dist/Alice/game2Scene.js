@@ -13,7 +13,7 @@ atGame2.any((ctx) => {
     const gameData = (0, extras_1.getGame2Data)(ctx.session);
     if (!gameData)
         return (0, extras_1.exitWithError)(ctx, 'gameData not found');
-    const rate = string_comparison_1.levenshtein.similarity(ctx.message, gameData.currentItem.originalText);
+    const rate = string_comparison_1.levenshtein.similarity(ctx.message, gameData.currentItem.words.join(' '));
     let userScore = gameData.userScore;
     if (rate > 0.8)
         userScore += 1;

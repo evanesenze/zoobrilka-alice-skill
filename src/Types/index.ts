@@ -89,6 +89,7 @@ interface IGame1Data {
 interface IGame2DataItem {
   originalText: string;
   replacedText: string;
+  words: string[];
 }
 
 interface IGame2Data {
