@@ -97,8 +97,7 @@ const backHandler = [
                     const newLearnData = getNewLearnData(poem, 'full', -1, -1);
                     if (!newLearnData)
                         return exitWithError(ctx, 'newLearnData not found');
-                    const poemText = getPoemText(newLearnData);
-                    message += `${getAuthorName(poem.author)} - ${poem.title}.` + `\n\n ${poemText}`;
+                    message += `${getAuthorName(poem.author)} - ${poem.title}.`;
                 }
             }
         }
