@@ -64,7 +64,7 @@ atPoemScene.command(recordCommand, (ctx) => {
     if (selectedPoemId === undefined)
         return (0, extras_1.exitWithError)(ctx, 'selectedPoemId not found');
     const buttons = [yandex_dialogs_sdk_1.Markup.button({ title: 'Перейти на сайт', hide: true, url: `https://zoobrilka-skill.web.app/poem/${poems[selectedPoemId].id}` })];
-    return yandex_dialogs_sdk_1.Reply.text('К сожалению, я не умею записывать голос. Перейди на сайт: https://zoobrilka-skill.web.app', { buttons });
+    return yandex_dialogs_sdk_1.Reply.text('К сожалению, я не умею записывать голос. Перейди на сайт: zoobrilka-skill.web.app', { buttons });
 });
 atPoemScene.command(gameCommand, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);

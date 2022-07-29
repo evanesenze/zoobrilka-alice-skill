@@ -78,7 +78,7 @@ atPoemScene.command(recordCommand, (ctx) => {
   const { selectedPoemId, poems } = findData;
   if (selectedPoemId === undefined) return exitWithError(ctx, 'selectedPoemId not found');
   const buttons = [Markup.button({ title: 'Перейти на сайт', hide: true, url: `https://zoobrilka-skill.web.app/poem/${poems[selectedPoemId].id}` })];
-  return Reply.text('К сожалению, я не умею записывать голос. Перейди на сайт: https://zoobrilka-skill.web.app', { buttons });
+  return Reply.text('К сожалению, я не умею записывать голос. Перейди на сайт: zoobrilka-skill.web.app', { buttons });
 });
 
 atPoemScene.command(gameCommand, (ctx) => {
