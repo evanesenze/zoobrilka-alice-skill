@@ -383,7 +383,7 @@ const getNewGame2Data = (gamesData: IGamesData): IGame2Data | null => {
       console.log(words);
       if (words.length < 3) return acc;
       const replacingWordsCount = Math.floor(words.length * 0.4);
-      const replacingWords = words.sort(() => Math.random() - 0.5).slice(0, replacingWordsCount);
+      const replacingWords = [...words].sort(() => Math.random() - 0.5).slice(0, replacingWordsCount);
       const replacedText = replacingWords.reduce((res, word) => res.replace(new RegExp(`(?<=^| )${word}(?=$| )`), '_'.repeat(word.length)), originalText);
       acc.push({ originalText, replacedText, words });
       return acc;
