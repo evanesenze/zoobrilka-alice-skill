@@ -53,8 +53,8 @@ const sceneNames = {
     SET_AUTHOR_SCENE: 'Выборе автора',
     SET_TITLE_SCENE: 'Выборе название',
     GAMES_MENU_SCENE: 'Выборе игры',
-    GAME_1_SCENE: 'Игре 1',
-    GAME_2_SCENE: 'Игре 2',
+    GAME_1_SCENE: 'Игре "Продолжи строки"',
+    GAME_2_SCENE: 'Игре "Заполни пропуски"',
 };
 const exitHandler = [
     exitCommand,
@@ -92,13 +92,13 @@ const backHandler = [
         else if (scene === 'POEM_SCENE') {
             {
                 const findData = getFindData(ctx.session);
-                if (findData && findData.selectedPoemId) {
+                if (findData && findData.selectedPoemId !== undefined) {
                     const poem = findData.poems[findData.selectedPoemId];
                     const newLearnData = getNewLearnData(poem, 'full', -1, -1);
                     if (!newLearnData)
                         return exitWithError(ctx, 'newLearnData not found');
                     const poemText = getPoemText(newLearnData);
-                    message += `\n\n ${poemText}`;
+                    message += `${getAuthorName(poem.author)} - ${poem.title}.` + `\n\n ${poemText}`;
                 }
             }
         }
@@ -119,17 +119,17 @@ ${message}`);
 ];
 exports.helpHandler = helpHandler;
 const sceneMessages = {
-    MENU: ['Меню текст'],
+    MENU: ['Вернулись в меню.\n Скажите "Найти", чтобы начать новый поиск.', 'Вернулись в меню.\n Скажите "Стих дня", чтобы посмотреть стих дня.'],
     LEARN_SCENE: ['Cкажи "Дальше", чтобы начать учить новую строку.'],
     SET_AUTHOR_SCENE: ['Назови имя/фамилию автора или скажи "Пропустить", чтобы перейти к поиску по названию.'],
     SET_TITLE_SCENE: ['Скажи название стиха или назови номер одного из найденых.'],
-    POEM_SCENE: ['Текущий стих.'],
-    GAMES_MENU_SCENE: ['Режим создан для проверки знаний стиха.\nДля начала, назови номер игры из списка\n1.)Игра 1.\n2.)Игра 2.'],
+    POEM_SCENE: ['Текущий стих: '],
+    GAMES_MENU_SCENE: ['Режим создан для проверки знаний стиха.\nДля начала, назови номер игры из списка\n1.)Продолжи строки.\n2.)Заполни пропуски.'],
     GAME_1_SCENE: [
-        'В этой игре стих делится на блоки по две строки. Я говорю первую строку, даю тебе время вспомнить вторую и слушаю ответ.\nЕсли он верный - ты получаешь балл.\n\nСкажи "Начать", для запуска игры.',
+        'В этой игре стих делится на блоки по две строки. Я говорю первую строку, даю тебе время вспомнить вторую и слушаю ответ.\nЕсли он совпадает с оригиналом на 60% - ты получаешь балл.\n\nСкажи "Начать", для запуска игры.',
     ],
     GAME_2_SCENE: [
-        'В этой игре стих делится на блоки по две строки. Я говорю текст блока, но закртываю в нем некоторые слова; даю тебе время подумать и слушаю полный текст блока\nЕсли он верный - ты получаешь балл.\n\nСкажи "Начать", для запуска игры.',
+        'В этой игре стих делится на блоки по две строки. Я говорю текст блока, но закртываю в нем некоторые слова; даю тебе время подумать и слушаю полный текст блока\nЕсли он совпадает с оригиналом на 80% - ты получаешь балл.\n\nСкажи "Начать", для запуска игры.',
     ],
 };
 exports.sceneMessages = sceneMessages;
@@ -140,7 +140,7 @@ const sceneHints = {
     ],
     SET_AUTHOR_SCENE: ["Назови имя/фамилию автора или скажи 'Пропустить', чтобы перейти к поиску по названию.\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
     SET_TITLE_SCENE: ["Скажи название стиха или назови номер одного из найденых.\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
-    POEM_SCENE: ["Ты можешь сказать мне одну из команд: 'Прочитай', 'Учить', 'Поиск' или 'Назад'\nСкажи 'Я устал', для завершения чата."],
+    POEM_SCENE: ["Ты можешь сказать мне одну из команд: 'Прочитай', 'Учить', 'Поиск', 'Играть' или 'Назад'\nСкажи 'Я устал', для завершения чата."],
     GAMES_MENU_SCENE: ["Для начала, назови номер игры из списка\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
     GAME_1_SCENE: ["Прослушай первую строку блока и назови вторую, чтобы двигаться дальше.\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
     GAME_2_SCENE: ["Прослушай текст блока с закртыми словами и назови полный текст, чтобы двигаться дальше.\nТакже можешь сказать: 'Назад'.\nСкажи 'Я устал', для завершения чата."],
@@ -180,16 +180,16 @@ const getPoemText = (learnData) => {
     switch (textType) {
         case 'full':
             if (!oldRowsText)
-                return (oldBlocksText + currentRowText).substring(0, 900);
-            return (oldBlocksText + oldRowsText + '\n' + currentRowText).substring(0, 900);
+                return (0, lodash_1.truncate)(oldBlocksText + currentRowText, { length: 900 });
+            return (0, lodash_1.truncate)(oldBlocksText + oldRowsText + '\n' + currentRowText, { length: 900 });
         case 'block':
             if (!oldRowsText)
-                return currentRowText.substring(0, 900);
-            return (oldRowsText + '\n' + currentRowText).substring(0, 900);
+                return (0, lodash_1.truncate)(currentRowText, { length: 900 });
+            return (0, lodash_1.truncate)(oldRowsText + '\n' + currentRowText, { length: 900 });
         case 'row':
-            return currentRowText.substring(0, 900);
+            return (0, lodash_1.truncate)(currentRowText, { length: 900 });
         default:
-            return currentRowText.substring(0, 900);
+            return (0, lodash_1.truncate)(currentRowText, { length: 900 });
     }
 };
 exports.getPoemText = getPoemText;
@@ -285,11 +285,11 @@ const goLearnNext = (ctx, learnData) => {
             }
             else {
                 deleteLearnData(ctx.session);
-                deleteFindData(ctx.session);
-                cleanSceneHistory(ctx.session);
+                // deleteFindData(ctx.session);
+                const scene = removeSceneHistory(ctx.session);
                 const text = 'Поздравляю! Ты выучил новый стих.';
-                ctx.enter('');
-                return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'Скажи "Записать", чтобы записать свое чтение. Скажи "Поиск", чтобы найти новый стих' });
+                ctx.enter(scene);
+                return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'Скажи "Игра" или "Записать", чтобы проверить себя или записать чтение. Скажи "Поиск", чтобы найти новый стих' });
             }
         }
         console.log('currentRow is last');
@@ -379,7 +379,8 @@ exports.saveGamesData = saveGamesData;
 const getNewGame1Data = (gamesData) => {
     const pairedRows = (0, lodash_1.chunk)(gamesData.rows, 2)
         .filter((item) => item.length === 2)
-        .sort(() => 0.5 - Math.random());
+        .reverse();
+    // .sort(() => 0.5 - Math.random());
     if (!pairedRows.length)
         return null;
     const startPairedRowsCount = pairedRows.length;
@@ -402,7 +403,8 @@ const getNewGame2Data = (gamesData) => {
         acc.push({ originalText, replacedText });
         return acc;
     }, [])
-        .sort(() => 0.5 - Math.random());
+        .reverse();
+    // .sort(() => 0.5 - Math.random());
     if (!items.length)
         return null;
     const startItemsCount = items.length;

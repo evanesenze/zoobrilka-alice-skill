@@ -4,10 +4,11 @@ import {
   POEM_SCENE,
   SET_AUTHOR_SCENE,
   addSceneHistory,
-  enableLogging,
+  // enableLogging,
   exitHandler,
   getAllSessionData,
   getAuthorName,
+  getDelaySendText,
   getNewLearnData,
   getOldLearnData,
   getPoemText,
@@ -32,7 +33,6 @@ const alice = new Alice();
 
 const findCommand = /новый|новое|другое|найти|поиск|искать|ищи|найди|ищу|отыскать/;
 const leranCommand = /продолжи|учи|зубрить|запоминать/;
-const recordCommand = /запомни|запиши|запись|записать|диктофон|аудиозапись|записывать|запишет|запомнить/;
 const dayPoemCommand = /стих дня|стихотворение дня/;
 
 alice.command('', (ctx) => {
@@ -68,12 +68,8 @@ alice.command(leranCommand, (ctx) => {
 
 ${poemText}`;
   c.enter(LEARN_SCENE);
-  return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+  return Reply.text({ text, tts: text + getDelaySendText(poemText) });
 });
-
-alice.command(recordCommand, () =>
-  Reply.text('К сожалению, я не умею записывать ваш голос. Перейди на сайт', { buttons: [Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://www.google.com' })] })
-);
 
 alice.command(dayPoemCommand, async (ctx) => {
   const c = ctx as IStageContext;
@@ -89,11 +85,11 @@ alice.command(dayPoemCommand, async (ctx) => {
   return Reply.text({ text: text + poemText, tts: text + 'Скажи "Прочитай", чтобы я его озвучил.\nСкажи "Учить", чтобы начать учить.\nСкажи "Поиск", чтобы найти другой стих.' });
 });
 
-alice.command('лог', (ctx) => {
-  const c = ctx as IStageContext;
-  enableLogging(c.session);
-  return Reply.text('Логирование влючено\nТвой ид:\n' + c.userId);
-});
+// alice.command('лог', (ctx) => {
+//   const c = ctx as IStageContext;
+//   enableLogging(c.session);
+//   return Reply.text('Логирование влючено\nТвой ид:\n' + c.userId);
+// });
 
 alice.command(...(exitHandler as [declaration: CommandDeclaration<IContext>, callback: CommandCallback<IContext>]));
 

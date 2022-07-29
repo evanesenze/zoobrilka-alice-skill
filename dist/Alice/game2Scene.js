@@ -18,22 +18,22 @@ atGame2.any((ctx) => {
     if (rate > 0.8)
         userScore += 1;
     console.log(gameData.items);
-    if (gameData.items.length < 1) {
+    if (gameData.items.length === 0) {
         (0, extras_1.deleteGame2Data)(ctx.session);
         (0, extras_1.removeSceneHistory)(ctx.session);
         ctx.enter(extras_1.GAMES_MENU_SCENE);
-        return yandex_dialogs_sdk_1.Reply.text(`Игра закончена. Ты знаешь стих на ${((gameData.userScore / gameData.startItemsCount) * 100).toFixed(1)}%.
+        return yandex_dialogs_sdk_1.Reply.text(`Твой текст совпал с оригиналом на ${Math.round(rate * 100)}%.
+Игра закончена. Ты знаешь стих на ${Math.round((gameData.userScore / gameData.startItemsCount) * 100)}%.
 
 Для начала новой игры, назови ее номер:
-1.)Игра 1.
-2.)Игра 2.`);
+1.)Продолжи строки.
+2.)Заполни пропуски.`);
     }
     const currentItem = gameData.items.pop();
-    const text = `Твой текст совпал с оригиналом на ${(rate * 100).toFixed(1)}%.
+    const text = `Твой текст совпал с оригиналом на ${Math.round(rate * 100)}%.
 Текущий счет: ${userScore}.
 
-Вот строка следующего блока с закрытыми словами:
-${currentItem.replacedText}`;
+Вот строка следующего блока с закрытыми словами:`;
     (0, extras_1.saveGame2Data)(ctx.session, Object.assign(Object.assign({}, gameData), { currentItem, userScore }));
-    return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[5000]> Скажи полный текст.' });
+    return yandex_dialogs_sdk_1.Reply.text({ text: text + '\n' + currentItem.replacedText, tts: text + currentItem.replacedText.replace(/_+/g, 'Пропущенное слово.') + 'sil <[5000]> Скажи полный текст.' });
 });

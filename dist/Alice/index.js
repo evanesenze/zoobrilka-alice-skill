@@ -25,7 +25,6 @@ const alice = new yandex_dialogs_sdk_1.Alice();
 exports.alice = alice;
 const findCommand = /новый|новое|другое|найти|поиск|искать|ищи|найди|ищу|отыскать/;
 const leranCommand = /продолжи|учи|зубрить|запоминать/;
-const recordCommand = /запомни|запиши|запись|записать|диктофон|аудиозапись|записывать|запишет|запомнить/;
 const dayPoemCommand = /стих дня|стихотворение дня/;
 alice.command('', (ctx) => {
     const c = ctx;
@@ -58,9 +57,8 @@ alice.command(leranCommand, (ctx) => {
 
 ${poemText}`;
     c.enter(extras_1.LEARN_SCENE);
-    return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+    return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + (0, extras_1.getDelaySendText)(poemText) });
 });
-alice.command(recordCommand, () => yandex_dialogs_sdk_1.Reply.text('К сожалению, я не умею записывать ваш голос. Перейди на сайт', { buttons: [yandex_dialogs_sdk_1.Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://www.google.com' })] }));
 alice.command(dayPoemCommand, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const c = ctx;
     const poem = yield (0, Base_1.getTodayPoem)();
@@ -76,11 +74,11 @@ alice.command(dayPoemCommand, (ctx) => __awaiter(void 0, void 0, void 0, functio
     const poemText = (0, extras_1.getPoemText)(newLearnData);
     return yandex_dialogs_sdk_1.Reply.text({ text: text + poemText, tts: text + 'Скажи "Прочитай", чтобы я его озвучил.\nСкажи "Учить", чтобы начать учить.\nСкажи "Поиск", чтобы найти другой стих.' });
 }));
-alice.command('лог', (ctx) => {
-    const c = ctx;
-    (0, extras_1.enableLogging)(c.session);
-    return yandex_dialogs_sdk_1.Reply.text('Логирование влючено\nТвой ид:\n' + c.userId);
-});
+// alice.command('лог', (ctx) => {
+//   const c = ctx as IStageContext;
+//   enableLogging(c.session);
+//   return Reply.text('Логирование влючено\nТвой ид:\n' + c.userId);
+// });
 alice.command(...extras_1.exitHandler);
 alice.command(...extras_1.helpHandler);
 alice.any(() => yandex_dialogs_sdk_1.Reply.text(String((0, lodash_1.sample)(extras_1.sceneHints['MENU']))));

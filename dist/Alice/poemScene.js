@@ -10,6 +10,8 @@ const startLearnCommand = /начать|старт|начало|начинаем
 const voicePoemCommand = /прочитай|прочти|зачитай|читай|читать|произнеси|прочитать|изложи|изложить/;
 const leranCommand = /продолжи|учи|зубрить|запоминать/;
 const findCommand = /новый|новое|другое|найти|поиск|искать|ищи|найди|ищу|отыскать/;
+const gameCommand = /игра/;
+const recordCommand = /запомни|запиши|запись|записать|диктофон|аудиозапись|записывать|запишет|запомнить/;
 atPoemScene.command(voicePoemCommand, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);
     if (!findData)
@@ -39,11 +41,12 @@ atPoemScene.command(startLearnCommand, (ctx) => {
     const learnData = (0, extras_1.getNewLearnData)(poems[selectedPoemId], 'row');
     if (!learnData)
         return (0, extras_1.exitWithError)(ctx, 'learnData not found');
-    const text = 'Повтори новую строку.\n\n' + (0, extras_1.getPoemText)(learnData);
+    const poemText = (0, extras_1.getPoemText)(learnData);
+    const text = 'Повтори новую строку.\n\n' + poemText;
     (0, extras_1.saveLearnData)(ctx.session, learnData);
     (0, extras_1.addSceneHistory)(ctx.session, extras_1.LEARN_SCENE);
     ctx.enter(extras_1.LEARN_SCENE);
-    return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+    return yandex_dialogs_sdk_1.Reply.text({ text, tts: text + (0, extras_1.getDelaySendText)(poemText) });
 });
 atPoemScene.command(findCommand, (ctx) => {
     (0, extras_1.deleteFindData)(ctx.session);
@@ -53,9 +56,12 @@ atPoemScene.command(findCommand, (ctx) => {
     ctx.enter(extras_1.SET_AUTHOR_SCENE);
     return yandex_dialogs_sdk_1.Reply.text(text);
 });
-atPoemScene.command(/играть/, (ctx) => {
+atPoemScene.command(recordCommand, () => {
+    const buttons = [yandex_dialogs_sdk_1.Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://zoobrilka-app.web.app/' })];
+    return yandex_dialogs_sdk_1.Reply.text('К сожалению, я не умею записывать голос. Перейди на сайт: zoobrilka-app.web.app', { buttons });
+});
+atPoemScene.command(gameCommand, (ctx) => {
     const findData = (0, extras_1.getFindData)(ctx.session);
-    console.log(findData);
     if (!findData || findData.selectedPoemId === undefined)
         return (0, extras_1.exitWithError)(ctx, 'findData not found');
     const selectedPoem = findData.poems[findData.selectedPoemId];

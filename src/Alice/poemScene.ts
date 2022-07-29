@@ -9,6 +9,7 @@ import {
   deleteFindData,
   exitHandler,
   exitWithError,
+  getDelaySendText,
   getFindData,
   getNewLearnData,
   getPoemText,
@@ -17,7 +18,7 @@ import {
   saveLearnData,
   sceneMessages,
 } from './extras';
-import { Reply, Scene } from 'yandex-dialogs-sdk';
+import { Markup, Reply, Scene } from 'yandex-dialogs-sdk';
 import { sample } from 'lodash';
 
 const atPoemScene = new Scene(POEM_SCENE);
@@ -26,6 +27,8 @@ const startLearnCommand = /начать|старт|начало|начинаем
 const voicePoemCommand = /прочитай|прочти|зачитай|читай|читать|произнеси|прочитать|изложи|изложить/;
 const leranCommand = /продолжи|учи|зубрить|запоминать/;
 const findCommand = /новый|новое|другое|найти|поиск|искать|ищи|найди|ищу|отыскать/;
+const gameCommand = /игра/;
+const recordCommand = /запомни|запиши|запись|записать|диктофон|аудиозапись|записывать|запишет|запомнить/;
 
 atPoemScene.command(voicePoemCommand, (ctx) => {
   const findData = getFindData(ctx.session);
@@ -52,11 +55,12 @@ atPoemScene.command(startLearnCommand, (ctx) => {
   if (selectedPoemId === undefined) return exitWithError(ctx, 'selectedPoemId not found');
   const learnData = getNewLearnData(poems[selectedPoemId], 'row');
   if (!learnData) return exitWithError(ctx, 'learnData not found');
-  const text = 'Повтори новую строку.\n\n' + getPoemText(learnData);
+  const poemText = getPoemText(learnData);
+  const text = 'Повтори новую строку.\n\n' + poemText;
   saveLearnData(ctx.session, learnData);
   addSceneHistory(ctx.session, LEARN_SCENE);
   ctx.enter(LEARN_SCENE);
-  return Reply.text({ text, tts: text + 'sil <[10000]> Скажи "Дальше", чтобы перейти к следующей строке' });
+  return Reply.text({ text, tts: text + getDelaySendText(poemText) });
 });
 
 atPoemScene.command(findCommand, (ctx) => {
@@ -68,9 +72,13 @@ atPoemScene.command(findCommand, (ctx) => {
   return Reply.text(text);
 });
 
-atPoemScene.command(/играть/, (ctx) => {
+atPoemScene.command(recordCommand, () => {
+  const buttons = [Markup.button({ title: 'Перейти на сайт', hide: true, url: 'https://zoobrilka-app.web.app/' })];
+  return Reply.text('К сожалению, я не умею записывать голос. Перейди на сайт: zoobrilka-app.web.app', { buttons });
+});
+
+atPoemScene.command(gameCommand, (ctx) => {
   const findData = getFindData(ctx.session);
-  console.log(findData);
   if (!findData || findData.selectedPoemId === undefined) return exitWithError(ctx, 'findData not found');
   const selectedPoem = findData.poems[findData.selectedPoemId];
   const rows = selectedPoem.text.replace(/\n\n/g, '\n').split('\n');

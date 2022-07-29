@@ -19,18 +19,19 @@ atGame1.any((ctx) => {
     if (rate > 0.6)
         userScore += 1;
     console.log(gameData.pairedRows);
-    if (gameData.pairedRows.length < 1) {
+    if (gameData.pairedRows.length === 0) {
         (0, extras_1.deleteGame1Data)(ctx.session);
         (0, extras_1.removeSceneHistory)(ctx.session);
         ctx.enter(extras_1.GAMES_MENU_SCENE);
-        return yandex_dialogs_sdk_1.Reply.text(`Игра закончена. Ты знаешь стих на ${((gameData.userScore / gameData.startPairedRowsCount) * 100).toFixed(1)}%.
+        return yandex_dialogs_sdk_1.Reply.text(`Твой текст совпал с оригиналом на ${Math.round(rate * 100)}%.
+Игра закончена. Ты знаешь стих на ${Math.round((gameData.userScore / gameData.startPairedRowsCount) * 100)}%.
 
 Для начала новой игры, назови ее номер:
-1.)Игра 1.
-2.)Игра 2.`);
+1.)Продолжи строки.
+2.)Заполни пропуски.`);
     }
     const currentPairedRow = gameData.pairedRows.pop();
-    const text = `Твой текст совпал с оригиналом на ${(rate * 100).toFixed(1)}%.
+    const text = `Твой текст совпал с оригиналом на ${Math.round(rate * 100)}%.
 Текущий счет: ${userScore}.
 
 Вот первая строка следующего блока:
